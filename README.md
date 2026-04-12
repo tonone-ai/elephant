@@ -20,10 +20,11 @@
 
 ## Install
 
-**Plugin registry:**
+**Plugin marketplace:**
 
 ```bash
-claude plugins install github:tonone-ai/elephant
+claude plugin marketplace add github:tonone-ai/elephant
+claude plugins install elephant
 ```
 
 **Or curl:**
@@ -77,4 +78,4 @@ New project? No history? Run `/elephant takeover`. It reads your last 60 commits
 
 MIT, see [LICENSE](LICENSE)
 
-Made by [tonone-ai](https://github.com/tonone-ai)
+Made by [tonone-ai](https://github.com/tonone-ai) · [elephant.tonone.ai](https://elephant.tonone.ai)
