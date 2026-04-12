@@ -23,14 +23,8 @@
 **Plugin marketplace:**
 
 ```bash
-claude plugin marketplace add github:tonone-ai/elephant
+claude plugin marketplace add tonone-ai/elephant
 claude plugins install elephant
-```
-
-**Or curl:**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/tonone-ai/elephant/main/install.sh | bash
 ```
 
 Restart Claude Code. Done.
