@@ -1,0 +1,15 @@
+{
+  "name": "elephant",
+  "version": "1.1.0",
+  "description": "Persistent memory for Claude Code. Never forget a session.",
+  "skills": [
+    {
+      "name": "elephant",
+      "path": "../skills/elephant/SKILL.md",
+      "trigger": "/elephant"
+    }
+  ],
+  "author": "tonone-ai <hello@tonone.ai>",
+  "license": "MIT",
+  "homepage": "https://github.com/tonone-ai/elephant"
+}
