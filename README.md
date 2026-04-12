@@ -6,6 +6,8 @@
 
 <p>Claude Code forgets everything between sessions. Elephant fixes that.</p>
 
+<p><strong>Stop re-explaining your stack. Stop pasting context. Just build.</strong></p>
+
 <img src="https://img.shields.io/badge/version-1.1.0-green">
 <img src="https://img.shields.io/badge/license-MIT-green">
 <img src="https://img.shields.io/badge/platform-Claude%20Code-blue">
@@ -15,6 +17,25 @@
 <img src="docs/elephant.gif">
 
 </div>
+
+---
+
+## Why it matters
+
+Every Claude Code session starts cold. No memory of your stack, your decisions, your ongoing work. You spend the first minutes re-explaining:
+
+- what you're building and how it's structured
+- what you were working on last session
+- why that workaround exists
+- what got decided last week
+
+Elephant fixes this. Memory loads automatically at session start. Open Claude Code, keep building.
+
+**Token savings.** Entries are caveman-compressed — articles and filler stripped. `/elephant compact` merges old routine entries. A week of project history fits in ~150 tokens instead of a 500-token manual preamble.
+
+**Time savings.** No more "here's where we left off" setup. No more finding the right file to paste for context. The AI already knows.
+
+**Cold start.** New machine, new teammate, fresh clone? `/elephant takeover` reads your last 60 commits and seeds memory in seconds.
 
 ---
 
