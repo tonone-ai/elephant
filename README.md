@@ -24,7 +24,7 @@
 
 ```bash
 claude plugin marketplace add tonone-ai/elephant
-claude plugins install elephant
+claude plugin install elephant@tonone-ai
 ```
 
 Restart Claude Code. Done.
