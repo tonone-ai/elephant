@@ -91,6 +91,7 @@ Steps:
      - subject contains `(#` (PR reference = likely significant)
 
 4. Format entries (newest first, matching git log default order):
+
    ```
    [!!] 2026-04-12 13:58 : feat: elephant memory system
    2026-04-12 12:00 : fix typo in output kit
@@ -102,9 +103,11 @@ Steps:
    - Use a temp file + rename for atomicity.
 
 6. For each entry, also append to `~/.claude/elephant/memory.md` (repo-prefixed):
+
    ```
    [!!] 2026-04-12 13:58 : tonone : feat: elephant memory system
    ```
+
    Append only entries not already present (match on timestamp + text).
 
 7. Report:

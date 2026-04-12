@@ -10,7 +10,7 @@ mkdir -p "${PLUGIN_DIR}/.claude-plugin"
 mkdir -p "${PLUGIN_DIR}/skills/elephant"
 
 curl -fsSL "${REPO}/.claude-plugin/plugin.json" -o "${PLUGIN_DIR}/.claude-plugin/plugin.json"
-curl -fsSL "${REPO}/skills/elephant/SKILL.md"   -o "${PLUGIN_DIR}/skills/elephant/SKILL.md"
+curl -fsSL "${REPO}/skills/elephant/SKILL.md" -o "${PLUGIN_DIR}/skills/elephant/SKILL.md"
 
 echo "✓ installed to ${PLUGIN_DIR}"
 echo ""
