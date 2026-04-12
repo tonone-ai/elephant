@@ -1,0 +1,15 @@
+{
+  "name": "elephant",
+  "owner": {
+    "name": "tonone-ai",
+    "email": "hello@tonone.ai"
+  },
+  "plugins": [
+    {
+      "name": "elephant",
+      "source": "./",
+      "description": "Persistent memory for Claude Code. Never forget a session.",
+      "version": "1.1.0"
+    }
+  ]
+}
