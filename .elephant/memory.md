@@ -42,3 +42,5 @@
 2026-04-16 21:52 : feat: switch to oldest-first append ordering, auto-header global memory — @fatih
 2026-04-16 21:52 : chore: autorecord memory sync — @fatih
 2026-04-16 22:29 : feat: add agent-commit note to local memory header — bump to v1.4.3 — @fatih
+2026-04-16 22:47 : fix: pass LOCAL_HEADER to appendLines on local memory write — bump to v1.5.1 — @fatih
+[!!] 2026-04-16 22:47 : PR: fix: autorecord drops local header — writes — @fatih
