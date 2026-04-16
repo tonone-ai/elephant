@@ -131,7 +131,7 @@ function main() {
   const capped = lines.slice(0, 15);
   const total = local.length;
   const imp = local.filter((e) => e.important).length;
-  const oldest = local.length ? (local[local.length - 1].tsStr?.slice(0, 10) || "?") : "?";
+  const newest = local.length ? (local[0].tsStr?.slice(0, 10) || "?") : "?";
 
   const body = capped.map((l) => `├ ${l}`).join("\n");
   const header = migrated
@@ -140,12 +140,12 @@ function main() {
   const ctx = [
     header,
     body,
-    `└ ${imp} important · oldest: ${oldest}`,
+    `└ ${imp} important · newest: ${newest}`,
   ].join("\n");
 
   const statusLine = migrated
     ? `🐘 migrated ${migrated} entries → .elephant/memory.md`
-    : `🐘 ${total} entries loaded (${imp} important · oldest: ${oldest})`;
+    : `🐘 ${total} entries loaded (${imp} important · newest: ${newest})`;
 
   emit(statusLine, ctx);
 }
