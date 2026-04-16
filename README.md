@@ -8,7 +8,7 @@
 
 <p><strong>Stop re-explaining your stack. Stop pasting context. Just build.</strong></p>
 
-<img src="https://img.shields.io/badge/version-1.1.0-green">
+<img src="https://img.shields.io/badge/version-1.3.0-green">
 <img src="https://img.shields.io/badge/license-MIT-green">
 <img src="https://img.shields.io/badge/platform-Claude%20Code-blue">
 
@@ -54,13 +54,17 @@ Restart Claude Code. Done.
 
 ## Commands
 
-| Command                    | What it does                               |
-| -------------------------- | ------------------------------------------ |
-| `/elephant save <text>`    | Save a memory entry                        |
-| `/elephant save !! <text>` | Save an important entry (never compressed) |
-| `/elephant show`           | Print your memory                          |
-| `/elephant compact`        | Merge old entries to save tokens           |
-| `/elephant takeover [N]`   | Bootstrap from git history (cold start)    |
+| Command                     | What it does                                       |
+| --------------------------- | -------------------------------------------------- |
+| `/elephant save <text>`     | Save a memory entry                                |
+| `/elephant save !! <text>`  | Save an important entry (never compressed)         |
+| `/elephant show`            | Print your memory                                  |
+| `/elephant compact`         | Merge old entries to save tokens                   |
+| `/elephant restyle`         | Re-compress all entries to strict caveman style    |
+| `/elephant takeover [N]`    | Bootstrap from git history (cold start)            |
+| `/elephant changelog`       | Generate / update `CHANGELOG.md` with version bump |
+| `/elephant readme`          | Generate / update `README.md` from repo context    |
+| `/elephant update`          | Pull latest elephant from GitHub and install       |
 
 ---
 
@@ -74,9 +78,11 @@ Elephant writes to two files:
 Entries are caveman-compressed (articles and filler dropped) to minimize token usage.
 Important entries (`[!!]`) are never compressed or deleted.
 
+A `SessionStart` hook automatically injects your memory as context at the beginning of every session. A `Stop` hook prompts Claude to engrave important actions when you end a session or shift topics — so nothing gets lost.
+
 ### Cold start
 
-New project? No history? Run `/elephant takeover`. It reads your last 60 commits and seeds memory automatically. Important commits (`feat:`, `fix:`, PRs) get marked `[!!]`.
+New project? No history? Run `/elephant takeover`. It reads your last 60 commits and seeds memory automatically. Important commits (`feat:`, `fix:`, PRs) get marked `[!!]`. Fresh repo with no commits yet? It seeds from the current session instead.
 
 ---
 
@@ -86,6 +92,12 @@ New project? No history? Run `/elephant takeover`. It reads your last 60 commits
 [!!] 2026-04-12 13:58 : feat: add stripe webhooks
 2026-04-12 12:00 : fix null pointer in auth middleware
 ```
+
+---
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
 ---
 
