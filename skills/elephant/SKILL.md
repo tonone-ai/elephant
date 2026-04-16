@@ -77,9 +77,30 @@ Steps:
    - `%s` = subject line
    - `%H` = full hash (used only to detect merge commits)
 
-   If git fails (not a git repo): print `not a git repo. nothing to seed.` and stop.
+   **If git fails — distinguish two cases:**
+   - Run `git rev-parse --git-dir` to check if this is a git repo at all.
+     - If that also fails: print `not a git repo. nothing to seed.` and stop.
+     - If it succeeds (repo exists but no commits yet): **fall back to session seeding** (see step 2b).
+
+   **If git log returns 0 commits** (empty output, no error): also fall back to session seeding.
 
    Skip bare upstream sync commits: lines where subject matches `^Merge branch '.+' of https?://` — these are `git pull` noise with no content value.
+
+2b. **Session seeding fallback** (fresh repo — no git history yet):
+
+   The repo is new. Seed from what happened in this session instead.
+
+   1. Get current timestamp via `date "+%Y-%m-%d %H:%M"`.
+   2. Review the current conversation context. Extract 1–5 meaningful events: decisions made, features started, setup done, problems solved. Skip small talk and meta-conversation.
+   3. Caveman-compress each event (drop a/an/the/just/really/basically/actually/simply, max 100 chars).
+   4. Mark `[!!]` if the event is significant (feature start, key decision, major setup).
+   5. Format as normal entries using the current timestamp.
+   6. Write to `.elephant/memory.md` and `~/.claude/elephant/memory.md` per steps 5–6.
+   7. Report:
+      ```
+      fresh repo — no git history. seeded N entries from current session.
+      tip: run /elephant takeover again after your first commit to append git history
+      ```
 
 3. For each remaining commit line, parse:
    - **Timestamp**: take first 16 chars of `%ci` → `YYYY-MM-DD HH:MM`
