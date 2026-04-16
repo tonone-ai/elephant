@@ -7,7 +7,6 @@
 
 const fs = require("fs");
 
-
 function main() {
   let raw = "";
   const timer = setTimeout(() => process.exit(0), 3000);
@@ -18,7 +17,9 @@ function main() {
     clearTimeout(timer);
 
     let data = {};
-    try { data = JSON.parse(raw); } catch {}
+    try {
+      data = JSON.parse(raw);
+    } catch {}
 
     // Another stop hook already blocked this stop — don't block again
     if (data.stop_hook_active) {
@@ -33,7 +34,8 @@ function main() {
         const transcript = fs.readFileSync(transcriptPath, "utf8");
 
         // Skip trivial sessions (fewer than 3 assistant turns)
-        const turns = (transcript.match(/"role"\s*:\s*"assistant"/g) || []).length;
+        const turns = (transcript.match(/"role"\s*:\s*"assistant"/g) || [])
+          .length;
         if (turns < 3) {
           process.exit(0);
           return;
@@ -53,10 +55,13 @@ function main() {
 
     const ctx = `🐘 ELEPHANT ENGRAVE (${ts}). DO NOT use Skill tool. DO NOT run commands. Evaluate only: natural session end? major topic shift? If YES: use Write or Edit tool on .elephant/memory.md — append 2-5 key actions, format \`YYYY-MM-DD HH:MM : action\` caveman <100 chars newest-first, [!!] critical. Then say: 🐘 memory updated. Topic shift: name it, suggest fresh session. If NO: say nothing. Do nothing.`;
 
-    process.stdout.write(JSON.stringify({
-      decision: "block",
-      systemMessage: ctx,
-    }) + "\n");
+    process.stdout.write(
+      JSON.stringify({
+        decision: "block",
+        reason: "🐘 Elephant engraving session memory...",
+        systemMessage: ctx,
+      }) + "\n",
+    );
   });
 }
 

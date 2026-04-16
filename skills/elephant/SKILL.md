@@ -57,7 +57,7 @@ Rewrite all entries in `.elephant/memory.md` to strict caveman style. Fixes entr
    - Lines that don't match this pattern (blank lines, malformed): keep verbatim.
 3. For each matched line, apply caveman compression to the `<text>` part only:
    - Strip leading articles: `a `, `an `, `the ` (case-insensitive, at start of text)
-   - Remove inline filler words: ` a `, ` an `, ` the `, ` just `, ` really `, ` basically `, ` actually `, ` simply ` (replace with single space)
+   - Remove inline filler words: `a`, `an`, `the`, `just`, `really`, `basically`, `actually`, `simply` (replace with single space)
    - Collapse multiple spaces → single space
    - Trim to 100 chars max (cut at last word boundary before limit)
    - Keep `[!!]` prefix and timestamp unchanged
@@ -108,54 +108,55 @@ Steps:
 
 2b. **Session seeding fallback** (fresh repo — no git history yet):
 
-   The repo is new. Seed from what happened in this session instead.
+The repo is new. Seed from what happened in this session instead.
 
-   1. Get current timestamp via `date "+%Y-%m-%d %H:%M"`.
-   2. Review the current conversation context. Extract 1–5 meaningful events: decisions made, features started, setup done, problems solved. Skip small talk and meta-conversation.
-   3. Caveman-compress each event (drop a/an/the/just/really/basically/actually/simply, max 100 chars).
-   4. Mark `[!!]` if the event is significant (feature start, key decision, major setup).
-   5. Format as normal entries using the current timestamp.
-   6. Write to `.elephant/memory.md` and `~/.claude/elephant/memory.md` per steps 5–6.
-   7. Report:
-      ```
-      fresh repo — no git history. seeded N entries from current session.
-      tip: run /elephant takeover again after your first commit to append git history
-      ```
+1.  Get current timestamp via `date "+%Y-%m-%d %H:%M"`.
+2.  Review the current conversation context. Extract 1–5 meaningful events: decisions made, features started, setup done, problems solved. Skip small talk and meta-conversation.
+3.  Caveman-compress each event (drop a/an/the/just/really/basically/actually/simply, max 100 chars).
+4.  Mark `[!!]` if the event is significant (feature start, key decision, major setup).
+5.  Format as normal entries using the current timestamp.
+6.  Write to `.elephant/memory.md` and `~/.claude/elephant/memory.md` per steps 5–6.
+7.  Report:
 
-3. For each remaining commit line, parse:
-   - **Timestamp**: take first 16 chars of `%ci` → `YYYY-MM-DD HH:MM`
-   - **Subject**: caveman-compress (drop a/an/the/just/really/basically/actually/simply, max 100 chars)
-   - **Important?**: mark `[!!]` if subject matches any of:
-     - starts with `feat`, `fix`, `breaking`, `release`, `deploy`, `revert`
-     - contains `Merge pull request` or `Merge branch`
-     - conventional commit with `!` (e.g. `feat!:`, `fix!:`)
-     - subject contains `(#` (PR reference = likely significant)
+    ```
+    fresh repo — no git history. seeded N entries from current session.
+    tip: run /elephant takeover again after your first commit to append git history
+    ```
 
-4. Format entries (newest first, matching git log default order):
+8.  For each remaining commit line, parse:
+    - **Timestamp**: take first 16 chars of `%ci` → `YYYY-MM-DD HH:MM`
+    - **Subject**: caveman-compress (drop a/an/the/just/really/basically/actually/simply, max 100 chars)
+    - **Important?**: mark `[!!]` if subject matches any of:
+      - starts with `feat`, `fix`, `breaking`, `release`, `deploy`, `revert`
+      - contains `Merge pull request` or `Merge branch`
+      - conventional commit with `!` (e.g. `feat!:`, `fix!:`)
+      - subject contains `(#` (PR reference = likely significant)
 
-   ```
-   [!!] 2026-04-12 13:58 : feat: elephant memory system
-   2026-04-12 12:00 : fix typo in output kit
-   ```
+9.  Format entries (newest first, matching git log default order):
 
-5. Write to `.elephant/memory.md`:
-   - If file didn't exist: create dir + file, write all entries.
-   - If file existed: prepend nothing new to existing entries; instead append git entries BELOW (so existing human entries stay at top).
-   - Use a temp file + rename for atomicity.
+    ```
+    [!!] 2026-04-12 13:58 : feat: elephant memory system
+    2026-04-12 12:00 : fix typo in output kit
+    ```
 
-6. For each entry, also append to `~/.claude/elephant/memory.md` (repo-prefixed):
+10. Write to `.elephant/memory.md`:
+    - If file didn't exist: create dir + file, write all entries.
+    - If file existed: prepend nothing new to existing entries; instead append git entries BELOW (so existing human entries stay at top).
+    - Use a temp file + rename for atomicity.
 
-   ```
-   [!!] 2026-04-12 13:58 : tonone : feat: elephant memory system
-   ```
+11. For each entry, also append to `~/.claude/elephant/memory.md` (repo-prefixed):
 
-   Append only entries not already present (match on timestamp + text).
+    ```
+    [!!] 2026-04-12 13:58 : tonone : feat: elephant memory system
+    ```
 
-7. Report:
-   ```
-   seeded N entries (YYYY-MM-DD → YYYY-MM-DD) — M marked [!!]
-   tip: run /elephant compact to merge old routine entries
-   ```
+    Append only entries not already present (match on timestamp + text).
+
+12. Report:
+    ```
+    seeded N entries (YYYY-MM-DD → YYYY-MM-DD) — M marked [!!]
+    tip: run /elephant compact to merge old routine entries
+    ```
 
 ### `/elephant update`
 
@@ -170,6 +171,7 @@ CACHE_BASE="$HOME/.claude/plugins/cache/elephant/elephant"
 ```
 
 Read current installed version:
+
 ```bash
 jq -r '."elephant@elephant"[0].version' "$INSTALLED_JSON"
 ```
@@ -181,6 +183,7 @@ git -C "$MARKETPLACE_DIR" fetch --quiet origin main
 ```
 
 Check if anything changed:
+
 ```bash
 git -C "$MARKETPLACE_DIR" log HEAD..origin/main --oneline
 ```
@@ -194,6 +197,7 @@ git -C "$MARKETPLACE_DIR" pull --quiet origin main
 ```
 
 Read new version:
+
 ```bash
 NEW_VERSION=$(jq -r '.plugins[0].version' "$MARKETPLACE_DIR/.claude-plugin/marketplace.json")
 ```
@@ -248,6 +252,7 @@ Generate or update `CHANGELOG.md` in the repo root. Follows [Keep a Changelog](h
 #### Step 1 — Detect current version
 
 Run these in parallel:
+
 - `cat CHANGELOG.md 2>/dev/null | grep -m1 '## \[' | grep -oP '\d+\.\d+\.\d+'`
 - `cat package.json 2>/dev/null | grep '"version"' | grep -oP '\d+\.\d+\.\d+'`
 - `cat pyproject.toml 2>/dev/null | grep '^version' | grep -oP '\d+\.\d+\.\d+'`
@@ -284,19 +289,20 @@ Skip: merge commits, version-bump-only commits (subject matches `^chore: bump ve
 
 Parse each commit subject + body. Assign to Keep a Changelog categories:
 
-| Category | Triggers |
-|----------|----------|
-| **Added** | `feat:`, `feat(*):`  |
-| **Changed** | `refactor:`, `perf:`, `style:` |
-| **Fixed** | `fix:`, `fix(*):` |
-| **Deprecated** | subject contains `deprecat` |
-| **Removed** | `chore:` + subject contains `remov` or `delet`, or `feat!:` with removal |
-| **Security** | subject contains `security`, `vuln`, `CVE`, `auth` |
-| **Breaking** | `feat!:`, `fix!:`, any `!:`, body contains `BREAKING CHANGE:` |
+| Category       | Triggers                                                                 |
+| -------------- | ------------------------------------------------------------------------ |
+| **Added**      | `feat:`, `feat(*):`                                                      |
+| **Changed**    | `refactor:`, `perf:`, `style:`                                           |
+| **Fixed**      | `fix:`, `fix(*):`                                                        |
+| **Deprecated** | subject contains `deprecat`                                              |
+| **Removed**    | `chore:` + subject contains `remov` or `delet`, or `feat!:` with removal |
+| **Security**   | subject contains `security`, `vuln`, `CVE`, `auth`                       |
+| **Breaking**   | `feat!:`, `fix!:`, any `!:`, body contains `BREAKING CHANGE:`            |
 
 **Entry format: caveman-compressed but with brief context.**
 
 Rules:
+
 - Caveman compression: drop a/an/the/just/really/basically/actually/simply, fragments OK, short synonyms
 - Subject line = core change (what)
 - Add `—` then 1 short caveman phrase for context (why/impact) — derive from commit body, PR title, or elephant memory
@@ -304,6 +310,7 @@ Rules:
 - Max ~120 chars total per entry
 
 Example of good entries:
+
 ```
 - add `--dry-run` flag to deploy — preview changes without applying
 - fix race condition in session hook — double memory writes on fast exit
@@ -315,13 +322,14 @@ Example of good entries:
 
 Analyze categorized changes and determine the bump recommendation:
 
-| Situation | Bump | Reasoning |
-|-----------|------|-----------|
-| Any **Breaking** entries | **MAJOR** | Breaking changes require major bump per semver |
-| Any **Added** entries (no breaking) | **MINOR** | New features → minor |
-| Only Fixed / Changed / Security / Deprecated / Removed | **PATCH** | No new public API → patch |
+| Situation                                              | Bump      | Reasoning                                      |
+| ------------------------------------------------------ | --------- | ---------------------------------------------- |
+| Any **Breaking** entries                               | **MAJOR** | Breaking changes require major bump per semver |
+| Any **Added** entries (no breaking)                    | **MINOR** | New features → minor                           |
+| Only Fixed / Changed / Security / Deprecated / Removed | **PATCH** | No new public API → patch                      |
 
 Compute the three candidate versions from current (e.g. `1.3.2`):
+
 - patch: `1.3.3`
 - minor: `1.4.0`
 - major: `2.0.0`
@@ -363,21 +371,26 @@ This project adheres to [Semantic Versioning](https://semver.org) and [Keep a Ch
 ## [1.4.0] - 2026-04-16
 
 ### Added
+
 - add `--dry-run` flag to deploy command — preview changes without applying
 - add `AskUserQuestion` tool to elephant skill — enables interactive version bump dialog
 
 ### Fixed
+
 - fix race condition in session hook — double memory writes on fast exit
 - fix timestamp parsing with non-UTC system clock
 
 ### Changed
+
 - refactor takeover command error messages — distinguish "not git repo" from "no commits yet"
 
 ## [1.3.2] - 2026-03-10
+
 ...
 ```
 
 Rules:
+
 - If `CHANGELOG.md` does not exist, create it with the full header + new version section.
 - If it exists and has an `## [Unreleased]` section: insert the new versioned section immediately after `## [Unreleased]`. Move any items already in `## [Unreleased]` into the new versioned section.
 - If it exists with no `## [Unreleased]`: insert the new versioned section at the top (after the header).
@@ -445,6 +458,7 @@ date "+%Y-%m-%d"
 ```
 
 Also read (all in parallel):
+
 - `package.json` — name, description, version, scripts, main entry
 - `pyproject.toml` — name, description, version (Python projects)
 - `Cargo.toml` — name, description, version (Rust projects)
@@ -457,6 +471,7 @@ Also read (all in parallel):
 **Create mode** (no README.md): generate full README from scratch.
 
 **Update mode** (README.md exists): preserve existing structure. Only regenerate sections marked with elephant update markers OR update specific known fields:
+
 - Version badge (shields.io `version-X.Y.Z`)
 - Last updated date
 - Any section between `<!-- elephant:start -->` and `<!-- elephant:end -->` markers
@@ -475,6 +490,7 @@ Choose:
 #### Step 3 — Determine project type and commands
 
 From collected context, infer:
+
 - **Project type**: CLI tool, library, plugin, web app, API, etc. — from package.json `main`/`bin`, repo name patterns, commit subjects
 - **Install method**: npm/pip/cargo/manual — from package.json/pyproject.toml/Cargo.toml
 - **Commands/API**: extract from package.json `scripts`, bin entries, commit subjects mentioning commands (e.g. `feat: add /foo command`)
@@ -511,6 +527,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full release history.
 ```
 
 Rules:
+
 - Write full English sentences — no caveman compression (this is user-facing docs)
 - Keep it concise: prefer 1 clear sentence over 3 vague ones
 - If install method unknown, write `# Install` with a TODO placeholder
@@ -527,15 +544,16 @@ Rules:
 **Update mode (add elephant section)**: append to existing README.md:
 
 ```markdown
-
 ---
 
 <!-- elephant:start -->
+
 ## About this project
 
 [generated overview paragraph]
 
-*Auto-maintained by [elephant](https://github.com/tonone-ai/elephant). Last updated: YYYY-MM-DD.*
+_Auto-maintained by [elephant](https://github.com/tonone-ai/elephant). Last updated: YYYY-MM-DD._
+
 <!-- elephant:end -->
 ```
 
