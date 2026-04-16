@@ -2,6 +2,8 @@
 > Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.
 ---
 
+[!!] 2026-04-16 18:19 : PR: fix: pin memory header to top — bump to v1.4.1
+[!!] 2026-04-16 18:19 : fix: pin memory header to top when autorecord prepends entries — bump to v1.4.1
 [!!] 2026-04-16 18:14 : feat: add elephant advertisement footer to CHANGELOG.md and README.md
 [!!] 2026-04-16 18:12 : PR: feat: add memory file header advertisement and bump to v1.4.0
 [!!] 2026-04-16 18:12 : feat: add memory file header advertisement and bump to v1.4.0
