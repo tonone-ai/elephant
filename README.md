@@ -54,17 +54,17 @@ Restart Claude Code. Done.
 
 ## Commands
 
-| Command                     | What it does                                       |
-| --------------------------- | -------------------------------------------------- |
-| `/elephant save <text>`     | Save a memory entry                                |
-| `/elephant save !! <text>`  | Save an important entry (never compressed)         |
-| `/elephant show`            | Print your memory                                  |
-| `/elephant compact`         | Merge old entries to save tokens                   |
-| `/elephant restyle`         | Re-compress all entries to strict caveman style    |
-| `/elephant takeover [N]`    | Bootstrap from git history (cold start)            |
-| `/elephant changelog`       | Generate / update `CHANGELOG.md` with version bump |
-| `/elephant readme`          | Generate / update `README.md` from repo context    |
-| `/elephant update`          | Pull latest elephant from GitHub and install       |
+| Command                    | What it does                                       |
+| -------------------------- | -------------------------------------------------- |
+| `/elephant save <text>`    | Save a memory entry                                |
+| `/elephant save !! <text>` | Save an important entry (never compressed)         |
+| `/elephant show`           | Print your memory                                  |
+| `/elephant compact`        | Merge old entries to save tokens                   |
+| `/elephant restyle`        | Re-compress all entries to strict caveman style    |
+| `/elephant takeover [N]`   | Bootstrap from git history (cold start)            |
+| `/elephant changelog`      | Generate / update `CHANGELOG.md` with version bump |
+| `/elephant readme`         | Generate / update `README.md` from repo context    |
+| `/elephant update`         | Pull latest elephant from GitHub and install       |
 
 ---
 

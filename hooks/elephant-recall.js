@@ -22,13 +22,18 @@ function parseFile(filePath, isGlobal) {
       const tsMatch = body.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2})/);
       const tsStr = tsMatch ? tsMatch[1] : null;
       const date = tsStr ? new Date(tsStr) : null;
-      const rest = tsStr ? body.slice(tsStr.length).replace(/^\s*:\s*/, "") : body;
+      const rest = tsStr
+        ? body.slice(tsStr.length).replace(/^\s*:\s*/, "")
+        : body;
 
       let repo = null;
       let text = rest;
       if (isGlobal) {
         const m = rest.match(/^([^:]+?)\s*:\s*(.+)$/);
-        if (m) { repo = m[1].trim(); text = m[2].trim(); }
+        if (m) {
+          repo = m[1].trim();
+          text = m[2].trim();
+        }
       }
 
       return { important, tsStr, date, repo, text };
@@ -43,7 +48,12 @@ function migrate() {
   if (fs.existsSync(LOCAL_MEM)) return null;
 
   const tononeCacheBase = path.join(
-    os.homedir(), ".claude", "plugins", "cache", "tonone-ai", "tonone"
+    os.homedir(),
+    ".claude",
+    "plugins",
+    "cache",
+    "tonone-ai",
+    "tonone",
   );
 
   const candidates = [];
@@ -67,20 +77,22 @@ function migrate() {
     if (!content.trim()) return null;
     fs.mkdirSync(path.dirname(LOCAL_MEM), { recursive: true });
     fs.writeFileSync(LOCAL_MEM, content);
-    return (content.split("\n").filter(Boolean).length);
+    return content.split("\n").filter(Boolean).length;
   } catch {
     return null;
   }
 }
 
 function emit(systemMessage, additionalContext) {
-  process.stdout.write(JSON.stringify({
-    systemMessage,
-    hookSpecificOutput: {
-      hookEventName: "SessionStart",
-      additionalContext,
-    },
-  }) + "\n");
+  process.stdout.write(
+    JSON.stringify({
+      systemMessage,
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext,
+      },
+    }) + "\n",
+  );
 }
 
 function main() {
@@ -93,11 +105,12 @@ function main() {
 
   const local = parseFile(LOCAL_MEM, false);
   const global = parseFile(GLOBAL_MEM, true).filter(
-    (e) => e.repo && e.repo !== REPO
+    (e) => e.repo && e.repo !== REPO,
   );
 
   if (local.length === 0 && global.length === 0) {
-    const msg = "🐘 no memory yet. run /elephant takeover to seed from git history.";
+    const msg =
+      "🐘 no memory yet. run /elephant takeover to seed from git history.";
     emit(msg, msg);
     return;
   }
@@ -105,7 +118,9 @@ function main() {
   const lines = [];
 
   const today = local.filter((e) => e.tsStr?.startsWith(todayStr));
-  const week = local.filter((e) => !e.tsStr?.startsWith(todayStr) && e.date && e.date >= cutoff7);
+  const week = local.filter(
+    (e) => !e.tsStr?.startsWith(todayStr) && e.date && e.date >= cutoff7,
+  );
   const older = local.filter((e) => e.date && e.date < cutoff7 && e.important);
 
   for (const e of today) {
@@ -131,17 +146,15 @@ function main() {
   const capped = lines.slice(0, 15);
   const total = local.length;
   const imp = local.filter((e) => e.important).length;
-  const newest = local.length ? (local[0].tsStr?.slice(0, 10) || "?") : "?";
+  const newest = local.length ? local[0].tsStr?.slice(0, 10) || "?" : "?";
 
   const body = capped.map((l) => `├ ${l}`).join("\n");
   const header = migrated
     ? `🐘 memory migrated — ${migrated} entries moved to .elephant/memory.md`
     : `🐘 memory loaded — ${total} entries`;
-  const ctx = [
-    header,
-    body,
-    `└ ${imp} important · newest: ${newest}`,
-  ].join("\n");
+  const ctx = [header, body, `└ ${imp} important · newest: ${newest}`].join(
+    "\n",
+  );
 
   const statusLine = migrated
     ? `🐘 migrated ${migrated} entries → .elephant/memory.md`
