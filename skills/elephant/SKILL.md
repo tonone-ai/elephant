@@ -2,7 +2,7 @@
 name: elephant
 description: Persistent memory commands. /elephant save <text> — write entry. /elephant save !! <text> — write important entry. /elephant show — print memory. /elephant compact — compress old entries. /elephant takeover [N] — seed memory from git history (cold start bootstrap). /elephant changelog — generate/update CHANGELOG.md with version management. /elephant readme — generate/update README.md from repo context. /elephant update — pull latest elephant from GitHub and install.
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
-version: 1.4.2
+version: 1.5.0
 author: tonone-ai <hello@tonone.ai>
 license: MIT
 ---
@@ -14,12 +14,14 @@ Manage the elephant memory system. Local file: `.elephant/memory.md`. Global fil
 ## Entry Format
 
 ```
-[!!]? YYYY-MM-DD HH:MM : text
+[!!]? YYYY-MM-DD HH:MM : text — @author
 ```
 
 `[!!]` = important (never compressed). No prefix = routine (eligible for compression after 7 days).
 
-All text caveman-compressed: drop articles (a/an/the), filler (just/really/basically/actually), fragments OK, short synonyms.
+`@author` = writer of the entry — derived from `git config user.email` local-part (the part before `@`). Falls back to first word of `git config user.name` (lowercased) or `$USER`. Always appended with ` — @handle` suffix so team members can see who added what.
+
+All text caveman-compressed: drop articles (a/an/the), filler (just/really/basically/actually), fragments OK, short synonyms. The `— @author` suffix is NEVER counted against the 100-char text limit and is NEVER stripped by caveman compression or restyle.
 
 ## Header
 
@@ -48,11 +50,12 @@ Parse the args provided to this skill invocation:
 Write a routine entry.
 
 1. Get current timestamp: run `date "+%Y-%m-%d %H:%M"` via Bash
-2. Compress text: drop a/an/the/just/really/basically/actually/simply, max 100 chars
-3. Format line: `YYYY-MM-DD HH:MM : <compressed text>`
-4. Append to `.elephant/memory.md` (create dir + file if needed)
-5. Append `YYYY-MM-DD HH:MM : <repo> : <compressed text>` to `~/.claude/elephant/memory.md`
-6. Confirm: output `saved: <line>`
+2. Get author: run `git config user.email` via Bash. Take the part before `@`. If that fails or is empty, run `git config user.name` and take the first word lowercased. If that also fails, use `$USER`.
+3. Compress text: drop a/an/the/just/really/basically/actually/simply, max 100 chars
+4. Format line: `YYYY-MM-DD HH:MM : <compressed text> — @<author>`
+5. Append to `.elephant/memory.md` (create dir + file if needed)
+6. Append `YYYY-MM-DD HH:MM : <repo> : <compressed text> — @<author>` to `~/.claude/elephant/memory.md`
+7. Confirm: output `saved: <line>`
 
 Repo name = last component of current working directory path.
 
@@ -73,12 +76,12 @@ Rewrite all entries in `.elephant/memory.md` to strict caveman style. Fixes entr
 1. Read `.elephant/memory.md`. If missing: print `nothing yet.` and stop.
 2. Parse each line. Each line has the form: `[!!]? YYYY-MM-DD HH:MM : <text>`
    - Lines that don't match this pattern (blank lines, malformed): keep verbatim.
-3. For each matched line, apply caveman compression to the `<text>` part only:
+3. For each matched line, split off the trailing author suffix first — match `\s*—\s*@[\w.-]+\s*$` and preserve it unchanged. Apply caveman compression to the `<text>` part only (text = everything between `:` and the optional ` — @author`):
    - Strip leading articles: `a `, `an `, `the ` (case-insensitive, at start of text)
    - Remove inline filler words: `a`, `an`, `the`, `just`, `really`, `basically`, `actually`, `simply` (replace with single space)
    - Collapse multiple spaces → single space
    - Trim to 100 chars max (cut at last word boundary before limit)
-   - Keep `[!!]` prefix and timestamp unchanged
+   - Keep `[!!]` prefix, timestamp, and `— @author` suffix unchanged
 4. Count how many lines changed.
 5. Write restyled content back to `.elephant/memory.md` (use temp file + rename for atomicity).
 6. Apply same restyle to `~/.claude/elephant/memory.md`:
@@ -92,7 +95,9 @@ Compress old routine entries (older than 7 days, no `[!!]` prefix).
 
 1. Read `.elephant/memory.md`
 2. Group non-`[!!]` entries older than 7 days by date (YYYY-MM-DD)
-3. Per day: merge all entries → single line: `YYYY-MM-DD : <entry1 text> + <entry2 text> + ...`
+3. Per day: merge all entries → single line: `YYYY-MM-DD : <entry1 text> + <entry2 text> + ... — @<authors>`
+   - Collect unique `@authors` from the grouped entries. If 1 author: `— @alice`. If 2–3: `— @alice,@bob`. If >3: `— @alice,@bob,@carol +N`.
+   - Drop per-entry `— @author` suffixes when merging (already captured in the combined suffix).
 4. Keep `[!!]` entries and entries ≤ 7 days old untouched
 5. Write compacted file back (use a temp file + rename for atomicity)
 6. Do same for `~/.claude/elephant/memory.md` (filter to this repo's entries only when compacting)
@@ -110,9 +115,10 @@ Steps:
    `⚠ memory already seeded (N entries). re-run to append git history below existing entries.`
    Then continue (don't abort — append git entries below existing).
 
-2. Run: `git log --format="%ci|||%s|||%H" -N` via Bash.
+2. Run: `git log --format="%ci|||%s|||%ae|||%H" -N` via Bash.
    - `%ci` = ISO 8601 date: `2026-04-12 13:58:23 +0000`
    - `%s` = subject line
+   - `%ae` = author email (local-part before `@` becomes `@author` suffix)
    - `%H` = full hash (used only to detect merge commits)
 
    **If git fails — distinguish two cases:**
@@ -122,7 +128,11 @@ Steps:
 
    **If git log returns 0 commits** (empty output, no error): also fall back to session seeding.
 
-   Skip bare upstream sync commits: lines where subject matches `^Merge branch '.+' of https?://` — these are `git pull` noise with no content value.
+   Skip noise commits (pure git-mirror entries with no engineering signal — Claude can always `git log` for them):
+   - `^Merge pull request #\d+` (PR merge commits — the underlying `feat`/`fix` commits are already captured)
+   - `^Merge branch ` / `^Merge remote-tracking branch ` (bare upstream sync noise)
+   - `^chore:\s*bump (version|to v?\d)` / `^chore:\s*release ` (version bumps)
+   - `^v\d+\.\d+\.\d+` / `^release\s+v?\d+\.\d+\.\d+` (version-only subjects)
 
 2b. **Session seeding fallback** (fresh repo — no git history yet):
 
@@ -144,17 +154,19 @@ The repo is new. Seed from what happened in this session instead.
 8.  For each remaining commit line, parse:
     - **Timestamp**: take first 16 chars of `%ci` → `YYYY-MM-DD HH:MM`
     - **Subject**: caveman-compress (drop a/an/the/just/really/basically/actually/simply, max 100 chars)
-    - **Important?**: mark `[!!]` if subject matches any of:
-      - starts with `feat`, `fix`, `breaking`, `release`, `deploy`, `revert`
-      - contains `Merge pull request` or `Merge branch`
+    - **Author**: take `%ae` local-part (before `@`) → `@<handle>` suffix
+    - **Important?**: mark `[!!]` only when subject has real engineering signal:
+      - starts with `breaking`, `revert`, `release`, `deploy`
       - conventional commit with `!` (e.g. `feat!:`, `fix!:`)
-      - subject contains `(#` (PR reference = likely significant)
+      - body contains `BREAKING CHANGE`
+
+      Plain `feat:` / `fix:` commits stay routine — they compact after 7 days, which is fine. This keeps the `[!!]` tier meaningful instead of a commit-history mirror.
 
 9.  Format entries (oldest first — reverse git log default order):
 
     ```
-    2026-04-12 12:00 : fix typo in output kit
-    [!!] 2026-04-12 13:58 : feat: elephant memory system
+    2026-04-12 12:00 : fix typo in output kit — @alice
+    [!!] 2026-04-12 13:58 : feat!: breaking elephant memory schema change — @bob
     ```
 
 10. Write to `.elephant/memory.md`:
@@ -165,10 +177,10 @@ The repo is new. Seed from what happened in this session instead.
 11. For each entry, also append to `~/.claude/elephant/memory.md` (repo-prefixed):
 
     ```
-    [!!] 2026-04-12 13:58 : tonone : feat: elephant memory system
+    [!!] 2026-04-12 13:58 : tonone : feat!: breaking elephant memory schema — @bob
     ```
 
-    Append only entries not already present (match on timestamp + text).
+    Append only entries not already present (match on timestamp + text, ignoring the `— @author` suffix).
 
 12. Report:
     ```

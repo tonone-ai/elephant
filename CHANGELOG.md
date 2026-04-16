@@ -5,6 +5,20 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-04-16
+
+### Added
+
+- add `— @author` suffix to every memory entry — writer identity derived from `git config user.email` local-part so teammates can see who added what to `.elephant/memory.md`
+- attribute takeover entries to original commit author — `/elephant takeover` now reads `%ae` from git log and stamps each seeded entry with its true author, not just the current user
+- move `gh pr create` autorecord from PostToolUse to PreToolUse — writes memory entry, auto-commits it as `chore: autorecord memory sync`, and pushes (if upstream set) so the PR picks up the memory update in its initial diff instead of leaving dirty drift after the PR is opened; guarded against protected branches (main/master/trunk/develop)
+
+### Changed
+
+- filter git-history noise from autorecord — merge commits (`Merge pull request #N`, `Merge branch`), version bumps (`chore: bump`, `vX.Y.Z`), and release tags no longer pollute memory since Claude can always `git log` for them
+- downgrade plain `feat:` / `fix:` commits from `[!!]` to routine — `[!!]` now reserved for real engineering signal (`breaking`, `revert`, `feat!:`, `fix!:`, `BREAKING CHANGE`) so the important tier stays meaningful
+- compact now merges authors when grouping old routine entries — single-day rollups show `— @alice,@bob` or `— @alice,@bob,@carol +N` for the contributors of that day
+
 ## [1.4.2] - 2026-04-16
 
 ### Changed

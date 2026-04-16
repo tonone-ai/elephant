@@ -1,6 +1,6 @@
 {
   "name": "elephant",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Persistent memory for Claude Code. Never forget a session.",
   "author": {
     "name": "tonone-ai",
