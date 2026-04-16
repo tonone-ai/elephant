@@ -5,6 +5,13 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-04-16
+
+### Changed
+
+- switch memory entry order to oldest-first — entries now append at the bottom so history reads chronologically top-to-bottom
+- auto-write elephant header to global `~/.claude/elephant/memory.md` — both local and global files now always carry the header, not just local
+
 ## [1.4.1] - 2026-04-16
 
 ### Fixed
@@ -80,4 +87,5 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 - fix incorrect install command format in README — `claude plugins install` syntax required two steps, not one
 
 ---
+
 > Changelog maintained automatically by [🐘 elephant](https://github.com/tonone-ai/elephant) — keep your changelog up to date without the manual work.
