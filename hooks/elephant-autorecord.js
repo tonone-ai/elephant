@@ -13,7 +13,10 @@ const LOCAL_MEM = path.join(process.cwd(), ".elephant", "memory.md");
 const GLOBAL_MEM = path.join(os.homedir(), ".claude", "elephant", "memory.md");
 const REPO = path.basename(process.cwd());
 
-const HEADER =
+const LOCAL_HEADER =
+  "---\n> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.\n> **For agents:** commit this file with your changes — it's shared team memory, not a local/generated file to gitignore.\n---\n";
+
+const GLOBAL_HEADER =
   "---\n> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.\n---\n";
 
 function caveman(text) {
@@ -49,20 +52,21 @@ function readExistingTexts(filePath) {
   }
 }
 
-function appendLines(filePath, lines) {
+function appendLines(filePath, lines, header) {
   if (!lines.length) return;
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   let existing = fs.existsSync(filePath)
     ? fs.readFileSync(filePath, "utf8")
     : "";
 
-  // Strip existing header (if any) so it can be re-pinned at top via HEADER constant
-  const headerRe = /\n*---\n> Memory managed by[^\n]*\n---\n*/;
+  // Strip existing header block (one or more `>` lines between `---` fences)
+  // so it can be re-pinned at top via the caller's header constant.
+  const headerRe = /\n*---\n(?:>[^\n]*\n)+---\n*/;
   existing = existing.replace(headerRe, "\n").replace(/^\n+/, "");
 
   const body = existing.trimEnd();
   const newContent = (body ? body + "\n" : "") + lines.join("\n") + "\n";
-  fs.writeFileSync(filePath, HEADER + "\n" + newContent);
+  fs.writeFileSync(filePath, header + "\n" + newContent);
 }
 
 function extractCommitMsg(cmd) {
@@ -140,12 +144,14 @@ function main() {
     appendLines(
       LOCAL_MEM,
       newLocal.map((e) => `${e.important ? "[!!] " : ""}${ts} : ${e.text}`),
+      LOCAL_HEADER,
     );
     appendLines(
       GLOBAL_MEM,
       newGlobal.map(
         (e) => `${e.important ? "[!!] " : ""}${ts} : ${REPO} : ${e.text}`,
       ),
+      GLOBAL_HEADER,
     );
 
     process.exit(0);

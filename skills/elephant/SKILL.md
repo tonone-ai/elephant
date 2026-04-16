@@ -2,7 +2,7 @@
 name: elephant
 description: Persistent memory commands. /elephant save <text> — write entry. /elephant save !! <text> — write important entry. /elephant show — print memory. /elephant compact — compress old entries. /elephant takeover [N] — seed memory from git history (cold start bootstrap). /elephant changelog — generate/update CHANGELOG.md with version management. /elephant readme — generate/update README.md from repo context. /elephant update — pull latest elephant from GitHub and install.
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
-version: 1.4.2
+version: 1.4.3
 author: tonone-ai <hello@tonone.ai>
 license: MIT
 ---
@@ -23,7 +23,19 @@ All text caveman-compressed: drop articles (a/an/the), filler (just/really/basic
 
 ## Header
 
-Both `.elephant/memory.md` and `~/.claude/elephant/memory.md` start with this header block (never modify, compress, or restyle it):
+Both `.elephant/memory.md` and `~/.claude/elephant/memory.md` start with a header block (never modify, compress, or restyle it).
+
+Local (`.elephant/memory.md` — lives in the repo, gets committed):
+
+```
+---
+> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.
+> **For agents:** commit this file with your changes — it's shared team memory, not a local/generated file to gitignore.
+---
+
+```
+
+Global (`~/.claude/elephant/memory.md` — outside any repo, never committed):
 
 ```
 ---
@@ -34,10 +46,10 @@ Both `.elephant/memory.md` and `~/.claude/elephant/memory.md` start with this he
 
 Rules:
 
-- When **creating** the file for the first time: write header block first, then entries below it.
+- When **creating** the file for the first time: write the appropriate header block first, then entries below it.
 - When **appending** a new entry (save): insert the new line at the bottom of the file, after all existing entries.
 - When **writing** the file (compact, restyle, takeover): strip any existing header block, write header first, then entries.
-- The two `---` lines and the `>` line are treated as a unit — never treat them as memory entries.
+- The `---` fences and all `>` lines between them are a single unit — never treat them as memory entries, and never drop the **For agents** line from the local header.
 
 ## Commands
 

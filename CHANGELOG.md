@@ -5,6 +5,14 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 ## [Unreleased]
 
+## [1.4.3] - 2026-04-16
+
+### Added
+
+- add **For agents** note to local memory header — tells agents reading `.elephant/memory.md` that the file is shared team memory and should be committed with their PR, not gitignored or excluded from diffs
+- split header into `LOCAL_HEADER` / `GLOBAL_HEADER` in autorecord hook — global memory at `~/.claude/elephant/memory.md` keeps the original one-line header since it lives outside any repo
+- loosen header-strip regex to match one-or-more `>` lines between `---` fences, so multi-line headers re-pin cleanly on future writes
+
 ## [1.4.2] - 2026-04-16
 
 ### Changed
