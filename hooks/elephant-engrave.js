@@ -51,20 +51,7 @@ function main() {
     const pad = (n) => String(n).padStart(2, "0");
     const ts = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-    const ctx = [
-      `Elephant check (${ts}). Evaluate:`,
-      "→ Natural session end? (user wrapping up, said done/thanks/bye)",
-      "→ Major topic shift? (different codebase, goal, or problem domain)",
-      "",
-      "If YES to either:",
-      "  Engrave 2-5 important actions to .elephant/memory.md (Write or Edit tool).",
-      "  Format: `YYYY-MM-DD HH:MM : action` caveman style, <100 chars, newest first.",
-      "  Use `[!!]` for critical items. Skip write if nothing actionable.",
-      "  Say: 🐘 memory updated / close session",
-      "  Topic shift: also name the new topic, suggest starting a fresh session.",
-      "",
-      "If NO: say nothing. Do nothing.",
-    ].join("\n");
+    const ctx = `Elephant check (${ts}). Session end or major topic shift? If yes: engrave 2-5 key actions to .elephant/memory.md — format \`YYYY-MM-DD HH:MM : action\` caveman <100 chars newest-first, [!!] critical. Say: 🐘 memory updated. Topic shift: name it, suggest fresh session. If no: say nothing.`;
 
     process.stdout.write(JSON.stringify({
       decision: "block",
