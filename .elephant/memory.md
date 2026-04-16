@@ -41,3 +41,4 @@
 2026-04-16 18:19 : fix: pin memory header to top when autorecord prepends — bump to v1.4.1 — @fatih.unver
 2026-04-16 21:52 : feat: switch to oldest-first append ordering, auto-header global memory — @fatih
 2026-04-16 21:52 : chore: autorecord memory sync — @fatih
+2026-04-16 22:29 : feat: add agent-commit note to local memory header — bump to v1.4.3 — @fatih

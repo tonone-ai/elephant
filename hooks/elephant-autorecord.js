@@ -59,9 +59,10 @@ function appendLines(filePath, lines, header) {
     ? fs.readFileSync(filePath, "utf8")
     : "";
 
-  // Strip existing header block (one or more `>` lines between `---` fences)
-  // so it can be re-pinned at top via the caller's header constant.
-  const headerRe = /\n*---\n(?:>[^\n]*\n)+---\n*/;
+  // Strip any existing header blocks (one or more `>` lines between `---` fences)
+  // so the caller's header constant can be re-pinned fresh. Uses /g to sweep up
+  // duplicates left behind when an older hook version ran against a newer file.
+  const headerRe = /\n*---\n(?:>[^\n]*\n)+---\n*/g;
   existing = existing.replace(headerRe, "\n").replace(/^\n+/, "");
 
   const body = existing.trimEnd();
