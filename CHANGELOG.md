@@ -5,6 +5,17 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-04-16
+
+### Fixed
+- bump version to force cache refresh — cached v1.2.1 entry contained stale Stop hook with old `hookSpecificOutput` schema; installing 1.2.2 creates a fresh cache entry with the corrected `decision`/`systemMessage` output
+
+## [1.2.1] - 2026-04-16
+
+### Fixed
+- correct Stop hook (`elephant-engrave.js`) output schema — was using `hookSpecificOutput.hookEventName: "Stop"` which is invalid; now emits top-level `decision: "block"` and `systemMessage` per the Claude Code Stop hook spec
+- add auto-restyle on `elephant update` — re-runs `/restyle` after pulling new version
+
 ## [1.2.0] - 2026-04-16
 
 ### Added
