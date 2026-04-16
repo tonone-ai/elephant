@@ -49,10 +49,19 @@ function readExistingTexts(filePath) {
 function prependLines(filePath, lines) {
   if (!lines.length) return;
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  const existing = fs.existsSync(filePath)
-    ? fs.readFileSync(filePath, "utf8")
-    : "";
-  fs.writeFileSync(filePath, lines.join("\n") + "\n" + existing);
+  let existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, "utf8") : "";
+
+  // Keep elephant header block pinned to top regardless of where it currently sits
+  const headerRe = /\n*---\n> Memory managed by[^\n]*\n---\n*/;
+  const headerMatch = existing.match(headerRe);
+  let header = "";
+  if (headerMatch) {
+    header = headerMatch[0].replace(/^\n+/, "").replace(/\n+$/, "\n");
+    existing = existing.replace(headerRe, "\n").replace(/^\n+/, "");
+  }
+
+  const newContent = lines.join("\n") + "\n" + existing;
+  fs.writeFileSync(filePath, header ? header + "\n" + newContent : newContent);
 }
 
 function extractCommitMsg(cmd) {

@@ -2,6 +2,9 @@
 > Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.
 ---
 
+[!!] 2026-04-16 18:14 : feat: add elephant advertisement footer to CHANGELOG.md and README.md
+[!!] 2026-04-16 18:12 : PR: feat: add memory file header advertisement and bump to v1.4.0
+[!!] 2026-04-16 18:12 : feat: add memory file header advertisement and bump to v1.4.0
 [!!] 2026-04-16 18:12 : release v1.4.0 — memory file advertisement header, update retrofit
 [!!] 2026-04-16 17:00 : feat: add autorecord hook — silent PostToolUse memory write
 2026-04-16 16:47 : wrote hooks/elephant-engrave.js

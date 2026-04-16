@@ -5,6 +5,12 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-04-16
+
+### Fixed
+
+- fix `prependLines` in autorecord hook — header block now stays pinned at top of memory file when new entries are prepended
+
 ## [1.4.0] - 2026-04-16
 
 ### Added
