@@ -185,7 +185,7 @@ Check if anything changed:
 git -C "$MARKETPLACE_DIR" log HEAD..origin/main --oneline
 ```
 
-If output is empty: print `already up to date (vX.Y.Z).` and stop.
+If output is empty: print `already up to date (vX.Y.Z).` and **stop immediately — do not proceed to step 3**.
 
 #### Step 3 — Pull
 
@@ -197,8 +197,6 @@ Read new version:
 ```bash
 NEW_VERSION=$(jq -r '.plugins[0].version' "$MARKETPLACE_DIR/.claude-plugin/marketplace.json")
 ```
-
-If `NEW_VERSION` == current version: print `already up to date (vX.Y.Z).` and stop.
 
 #### Step 4 — Install to cache
 
