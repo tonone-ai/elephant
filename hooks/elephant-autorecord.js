@@ -13,6 +13,9 @@ const LOCAL_MEM = path.join(process.cwd(), ".elephant", "memory.md");
 const GLOBAL_MEM = path.join(os.homedir(), ".claude", "elephant", "memory.md");
 const REPO = path.basename(process.cwd());
 
+const HEADER =
+  "---\n> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.\n---\n";
+
 function caveman(text) {
   return text
     .replace(/\b(a|an|the|just|really|basically|actually|simply)\b\s*/gi, " ")
@@ -46,22 +49,20 @@ function readExistingTexts(filePath) {
   }
 }
 
-function prependLines(filePath, lines) {
+function appendLines(filePath, lines) {
   if (!lines.length) return;
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  let existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, "utf8") : "";
+  let existing = fs.existsSync(filePath)
+    ? fs.readFileSync(filePath, "utf8")
+    : "";
 
-  // Keep elephant header block pinned to top regardless of where it currently sits
+  // Strip existing header (if any) so it can be re-pinned at top via HEADER constant
   const headerRe = /\n*---\n> Memory managed by[^\n]*\n---\n*/;
-  const headerMatch = existing.match(headerRe);
-  let header = "";
-  if (headerMatch) {
-    header = headerMatch[0].replace(/^\n+/, "").replace(/\n+$/, "\n");
-    existing = existing.replace(headerRe, "\n").replace(/^\n+/, "");
-  }
+  existing = existing.replace(headerRe, "\n").replace(/^\n+/, "");
 
-  const newContent = lines.join("\n") + "\n" + existing;
-  fs.writeFileSync(filePath, header ? header + "\n" + newContent : newContent);
+  const body = existing.trimEnd();
+  const newContent = (body ? body + "\n" : "") + lines.join("\n") + "\n";
+  fs.writeFileSync(filePath, HEADER + "\n" + newContent);
 }
 
 function extractCommitMsg(cmd) {
@@ -110,7 +111,8 @@ function main() {
     // git commit
     const commitMsg = extractCommitMsg(cmd);
     if (commitMsg) {
-      const important = /^(feat|fix|breaking|release|deploy|revert)[\s!:(]/.test(commitMsg);
+      const important =
+        /^(feat|fix|breaking|release|deploy|revert)[\s!:(]/.test(commitMsg);
       entries.push({ text: caveman(commitMsg), important });
     }
 
@@ -135,11 +137,11 @@ function main() {
         !existingGlobal.has(e.text),
     );
 
-    prependLines(
+    appendLines(
       LOCAL_MEM,
       newLocal.map((e) => `${e.important ? "[!!] " : ""}${ts} : ${e.text}`),
     );
-    prependLines(
+    appendLines(
       GLOBAL_MEM,
       newGlobal.map(
         (e) => `${e.important ? "[!!] " : ""}${ts} : ${REPO} : ${e.text}`,

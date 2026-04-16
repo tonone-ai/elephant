@@ -2,7 +2,7 @@
 name: elephant
 description: Persistent memory commands. /elephant save <text> — write entry. /elephant save !! <text> — write important entry. /elephant show — print memory. /elephant compact — compress old entries. /elephant takeover [N] — seed memory from git history (cold start bootstrap). /elephant changelog — generate/update CHANGELOG.md with version management. /elephant readme — generate/update README.md from repo context. /elephant update — pull latest elephant from GitHub and install.
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
-version: 1.4.1
+version: 1.4.2
 author: tonone-ai <hello@tonone.ai>
 license: MIT
 ---
@@ -23,7 +23,7 @@ All text caveman-compressed: drop articles (a/an/the), filler (just/really/basic
 
 ## Header
 
-Every `.elephant/memory.md` file starts with this header block (never modify, compress, or restyle it):
+Both `.elephant/memory.md` and `~/.claude/elephant/memory.md` start with this header block (never modify, compress, or restyle it):
 
 ```
 ---
@@ -33,8 +33,9 @@ Every `.elephant/memory.md` file starts with this header block (never modify, co
 ```
 
 Rules:
+
 - When **creating** the file for the first time: write header block first, then entries below it.
-- When **prepending** a new entry (save): insert the new line immediately after the header block, not at the very top.
+- When **appending** a new entry (save): insert the new line at the bottom of the file, after all existing entries.
 - When **writing** the file (compact, restyle, takeover): strip any existing header block, write header first, then entries.
 - The two `---` lines and the `>` line are treated as a unit — never treat them as memory entries.
 
@@ -49,8 +50,8 @@ Write a routine entry.
 1. Get current timestamp: run `date "+%Y-%m-%d %H:%M"` via Bash
 2. Compress text: drop a/an/the/just/really/basically/actually/simply, max 100 chars
 3. Format line: `YYYY-MM-DD HH:MM : <compressed text>`
-4. Prepend to `.elephant/memory.md` (create dir + file if needed)
-5. Prepend `YYYY-MM-DD HH:MM : <repo> : <compressed text>` to `~/.claude/elephant/memory.md`
+4. Append to `.elephant/memory.md` (create dir + file if needed)
+5. Append `YYYY-MM-DD HH:MM : <repo> : <compressed text>` to `~/.claude/elephant/memory.md`
 6. Confirm: output `saved: <line>`
 
 Repo name = last component of current working directory path.
@@ -149,16 +150,16 @@ The repo is new. Seed from what happened in this session instead.
       - conventional commit with `!` (e.g. `feat!:`, `fix!:`)
       - subject contains `(#` (PR reference = likely significant)
 
-9.  Format entries (newest first, matching git log default order):
+9.  Format entries (oldest first — reverse git log default order):
 
     ```
-    [!!] 2026-04-12 13:58 : feat: elephant memory system
     2026-04-12 12:00 : fix typo in output kit
+    [!!] 2026-04-12 13:58 : feat: elephant memory system
     ```
 
 10. Write to `.elephant/memory.md`:
     - If file didn't exist: create dir + file, write all entries.
-    - If file existed: prepend nothing new to existing entries; instead append git entries BELOW (so existing human entries stay at top).
+    - If file existed: append git entries below existing entries.
     - Use a temp file + rename for atomicity.
 
 11. For each entry, also append to `~/.claude/elephant/memory.md` (repo-prefixed):
@@ -570,6 +571,7 @@ Rules:
 #### Step 5 — Write README.md
 
 **Create mode**: write the full generated content, then append footer:
+
 ```
 ---
 > README maintained automatically by [🐘 elephant](https://github.com/tonone-ai/elephant) — keep your docs in sync without the manual work.
