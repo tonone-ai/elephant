@@ -5,6 +5,21 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-04-16
+
+### Added
+
+- add advertisement header to `.elephant/memory.md` — pinned at top of every memory file so any repo collaborator who opens it discovers elephant
+- add retrofit step to `update` command — adds header to existing memory files that predate this feature
+- replace Stop hook engrave with silent PostToolUse autorecord — fires silently on `git commit` / `gh pr create` instead of interrupting session end with a visible message
+
+### Fixed
+
+- fix rename `newest` to `latest` in recall footer
+- fix auto-commit memory after engrave in stop hook
+- fix prevent skill invocation in engrave stop hook prompt
+- fix gitignore `docs/superpowers` directory to avoid leaking internal design specs
+
 ## [1.3.1] - 2026-04-16
 
 ### Fixed
@@ -57,3 +72,6 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 - fix marketplace.json missing from initial release — broke two-step plugin install flow
 - fix incorrect install command format in README — `claude plugins install` syntax required two steps, not one
+
+---
+> Changelog maintained automatically by [🐘 elephant](https://github.com/tonone-ai/elephant) — keep your changelog up to date without the manual work.
