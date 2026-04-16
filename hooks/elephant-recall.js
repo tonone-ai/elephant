@@ -73,13 +73,14 @@ function migrate() {
   }
 }
 
-function escapeJson(s) {
-  return s
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, "\\n")
-    .replace(/\r/g, "\\r")
-    .replace(/\t/g, "\\t");
+function emit(systemMessage, additionalContext) {
+  process.stdout.write(JSON.stringify({
+    systemMessage,
+    hookSpecificOutput: {
+      hookEventName: "SessionStart",
+      additionalContext,
+    },
+  }) + "\n");
 }
 
 function main() {
@@ -96,8 +97,8 @@ function main() {
   );
 
   if (local.length === 0 && global.length === 0) {
-    const ctx = "🐘 no memory yet. run /elephant takeover to seed from git history.";
-    process.stdout.write(`{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"${escapeJson(ctx)}"}}\n`);
+    const msg = "🐘 no memory yet. run /elephant takeover to seed from git history.";
+    emit(msg, msg);
     return;
   }
 
@@ -142,7 +143,11 @@ function main() {
     `└ ${imp} important · oldest: ${oldest}`,
   ].join("\n");
 
-  process.stdout.write(`{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"${escapeJson(ctx)}"}}\n`);
+  const statusLine = migrated
+    ? `🐘 migrated ${migrated} entries → .elephant/memory.md`
+    : `🐘 ${total} entries loaded (${imp} important · oldest: ${oldest})`;
+
+  emit(statusLine, ctx);
 }
 
 main();
