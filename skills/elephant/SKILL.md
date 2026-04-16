@@ -1,8 +1,8 @@
 ---
 name: elephant
-description: Persistent memory commands. /elephant save <text> — write entry. /elephant save !! <text> — write important entry. /elephant show — print memory. /elephant compact — compress old entries. /elephant takeover [N] — seed memory from git history (cold start bootstrap).
-allowed-tools: Read, Write, Edit, Bash
-version: 1.1.0
+description: Persistent memory commands. /elephant save <text> — write entry. /elephant save !! <text> — write important entry. /elephant show — print memory. /elephant compact — compress old entries. /elephant takeover [N] — seed memory from git history (cold start bootstrap). /elephant changelog — generate/update CHANGELOG.md with version management. /elephant update — pull latest elephant from GitHub and install.
+allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
+version: 1.2.1
 author: tonone-ai <hello@tonone.ai>
 license: MIT
 ---
@@ -47,6 +47,26 @@ Same as above but prefix line with `[!!] `.
 Read `.elephant/memory.md` and print full contents verbatim.
 
 If file missing: print `nothing yet.`
+
+### `/elephant restyle`
+
+Rewrite all entries in `.elephant/memory.md` to strict caveman style. Fixes entries saved without compression.
+
+1. Read `.elephant/memory.md`. If missing: print `nothing yet.` and stop.
+2. Parse each line. Each line has the form: `[!!]? YYYY-MM-DD HH:MM : <text>`
+   - Lines that don't match this pattern (blank lines, malformed): keep verbatim.
+3. For each matched line, apply caveman compression to the `<text>` part only:
+   - Strip leading articles: `a `, `an `, `the ` (case-insensitive, at start of text)
+   - Remove inline filler words: ` a `, ` an `, ` the `, ` just `, ` really `, ` basically `, ` actually `, ` simply ` (replace with single space)
+   - Collapse multiple spaces → single space
+   - Trim to 100 chars max (cut at last word boundary before limit)
+   - Keep `[!!]` prefix and timestamp unchanged
+4. Count how many lines changed.
+5. Write restyled content back to `.elephant/memory.md` (use temp file + rename for atomicity).
+6. Apply same restyle to `~/.claude/elephant/memory.md`:
+   - Only touch lines belonging to this repo (match `YYYY-MM-DD HH:MM : <reponame> :` prefix)
+   - Same compression rules on the text part (after `<reponame> :`)
+7. Report: `restyled N of M entries`
 
 ### `/elephant compact`
 
@@ -136,3 +156,252 @@ Steps:
    seeded N entries (YYYY-MM-DD → YYYY-MM-DD) — M marked [!!]
    tip: run /elephant compact to merge old routine entries
    ```
+
+### `/elephant update`
+
+Pull latest elephant from GitHub and install it — no manual plugin directory navigation needed.
+
+#### Step 1 — Resolve paths
+
+```bash
+MARKETPLACE_DIR="$HOME/.claude/plugins/marketplaces/elephant"
+INSTALLED_JSON="$HOME/.claude/plugins/installed_plugins.json"
+CACHE_BASE="$HOME/.claude/plugins/cache/elephant/elephant"
+```
+
+Read current installed version:
+```bash
+jq -r '."elephant@elephant"[0].version' "$INSTALLED_JSON"
+```
+
+#### Step 2 — Fetch updates
+
+```bash
+git -C "$MARKETPLACE_DIR" fetch --quiet origin main
+```
+
+Check if anything changed:
+```bash
+git -C "$MARKETPLACE_DIR" log HEAD..origin/main --oneline
+```
+
+If output is empty: print `already up to date (vX.Y.Z).` and stop.
+
+#### Step 3 — Pull
+
+```bash
+git -C "$MARKETPLACE_DIR" pull --quiet origin main
+```
+
+Read new version:
+```bash
+NEW_VERSION=$(jq -r '.plugins[0].version' "$MARKETPLACE_DIR/.claude-plugin/marketplace.json")
+```
+
+If `NEW_VERSION` == current version: print `already up to date (vX.Y.Z).` and stop.
+
+#### Step 4 — Install to cache
+
+```bash
+NEW_CACHE="$CACHE_BASE/$NEW_VERSION"
+cp -r "$MARKETPLACE_DIR" "$NEW_CACHE"
+```
+
+#### Step 5 — Update installed_plugins.json
+
+Use `jq` to patch `installPath` and `version` for the `elephant@elephant` entry:
+
+```bash
+NOW=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+jq --arg ver "$NEW_VERSION" \
+   --arg path "$NEW_CACHE" \
+   --arg now "$NOW" \
+   '."elephant@elephant"[0].version = $ver |
+    ."elephant@elephant"[0].installPath = $path |
+    ."elephant@elephant"[0].lastUpdated = $now' \
+   "$INSTALLED_JSON" > "$INSTALLED_JSON.tmp" && mv "$INSTALLED_JSON.tmp" "$INSTALLED_JSON"
+```
+
+#### Step 6 — Report
+
+```
+updated elephant: v1.1.0 → v1.2.0
+installed: ~/.claude/plugins/cache/elephant/elephant/1.2.0
+
+changes:
+  <list of commits from git log output in step 2, caveman-compressed>
+
+reload claude code to pick up new version
+```
+
+Show commits from step 2 git log — caveman-compress each subject line. If many commits, show max 10 newest.
+
+---
+
+### `/elephant changelog [version]`
+
+Generate or update `CHANGELOG.md` in the repo root. Follows [Keep a Changelog](https://keepachangelog.com) format. Entries are written as full, readable sentences — **not** caveman-compressed.
+
+#### Step 1 — Detect current version
+
+Run these in parallel:
+- `cat CHANGELOG.md 2>/dev/null | grep -m1 '## \[' | grep -oP '\d+\.\d+\.\d+'`
+- `cat package.json 2>/dev/null | grep '"version"' | grep -oP '\d+\.\d+\.\d+'`
+- `cat pyproject.toml 2>/dev/null | grep '^version' | grep -oP '\d+\.\d+\.\d+'`
+- `cat Cargo.toml 2>/dev/null | grep '^version' | grep -oP '\d+\.\d+\.\d+'`
+- `cat VERSION 2>/dev/null | grep -oP '\d+\.\d+\.\d+'`
+- `git tag --sort=-version:refname | head -1`
+
+Use the first version found. If none found, current version = `0.0.0` (new project).
+
+If user passed `version` as arg (e.g. `/elephant changelog 2.0.0`), skip version suggestion and use that directly. Still collect and categorize changes (steps 2–3), then jump to step 5.
+
+#### Step 2 — Collect changes since last release
+
+Determine the boundary: last git tag, or (if no tags) last entry date in `CHANGELOG.md`, or all commits.
+
+```bash
+# Get last tag
+git describe --tags --abbrev=0 2>/dev/null
+
+# Commits since last tag (or all if no tag)
+LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+if [ -n "$LAST_TAG" ]; then
+  git log "$LAST_TAG"..HEAD --format="%ci|||%s|||%b" --no-merges
+else
+  git log --format="%ci|||%s|||%b" --no-merges
+fi
+```
+
+Also read `.elephant/memory.md` — include `[!!]` entries from the same period as supplementary context (they may contain decisions not in commits).
+
+Skip: merge commits, version-bump-only commits (subject matches `^chore: bump version` or `^v\d`).
+
+#### Step 3 — Categorize changes
+
+Parse each commit subject + body. Assign to Keep a Changelog categories:
+
+| Category | Triggers |
+|----------|----------|
+| **Added** | `feat:`, `feat(*):`  |
+| **Changed** | `refactor:`, `perf:`, `style:` |
+| **Fixed** | `fix:`, `fix(*):` |
+| **Deprecated** | subject contains `deprecat` |
+| **Removed** | `chore:` + subject contains `remov` or `delet`, or `feat!:` with removal |
+| **Security** | subject contains `security`, `vuln`, `CVE`, `auth` |
+| **Breaking** | `feat!:`, `fix!:`, any `!:`, body contains `BREAKING CHANGE:` |
+
+**Entry format: caveman-compressed but with brief context.**
+
+Rules:
+- Caveman compression: drop a/an/the/just/really/basically/actually/simply, fragments OK, short synonyms
+- Subject line = core change (what)
+- Add `—` then 1 short caveman phrase for context (why/impact) — derive from commit body, PR title, or elephant memory
+- Skip context phrase if commit body is empty and subject is already clear
+- Max ~120 chars total per entry
+
+Example of good entries:
+```
+- add `--dry-run` flag to deploy — preview changes without applying
+- fix race condition in session hook — double memory writes on fast exit
+- remove legacy `v1/auth` endpoint — deprecated since 1.3.0, use `v2/auth`
+- refactor takeover command — cleaner fallback when no git history yet
+```
+
+#### Step 4 — Suggest version bump
+
+Analyze categorized changes and determine the bump recommendation:
+
+| Situation | Bump | Reasoning |
+|-----------|------|-----------|
+| Any **Breaking** entries | **MAJOR** | Breaking changes require major bump per semver |
+| Any **Added** entries (no breaking) | **MINOR** | New features → minor |
+| Only Fixed / Changed / Security / Deprecated / Removed | **PATCH** | No new public API → patch |
+
+Compute the three candidate versions from current (e.g. `1.3.2`):
+- patch: `1.3.3`
+- minor: `1.4.0`
+- major: `2.0.0`
+
+Present to user using `AskUserQuestion`:
+
+```
+Current version: 1.3.2
+Changes collected: 2 features, 3 fixes, 0 breaking
+
+Recommendation: MINOR → 1.4.0
+Reason: new features added, no breaking changes
+
+Choose version:
+  [1] 1.4.0  (minor) — recommended
+  [2] 2.0.0  (major) — for breaking changes
+  [3] 1.3.3  (patch) — for fixes-only release
+  [4] custom — enter a version manually
+  [5] unreleased — add to [Unreleased] section without a version
+```
+
+If user picks `[4]`, ask for the version string.
+If user picks `[5]`, use `Unreleased` as the heading and skip tag creation.
+
+#### Step 5 — Write CHANGELOG.md
+
+Read existing `CHANGELOG.md` if present. Locate the `## [Unreleased]` section if it exists.
+
+**Format:**
+
+```markdown
+# Changelog
+
+All notable changes to this project will be documented in this file.
+This project adheres to [Semantic Versioning](https://semver.org) and [Keep a Changelog](https://keepachangelog.com).
+
+## [Unreleased]
+
+## [1.4.0] - 2026-04-16
+
+### Added
+- add `--dry-run` flag to deploy command — preview changes without applying
+- add `AskUserQuestion` tool to elephant skill — enables interactive version bump dialog
+
+### Fixed
+- fix race condition in session hook — double memory writes on fast exit
+- fix timestamp parsing with non-UTC system clock
+
+### Changed
+- refactor takeover command error messages — distinguish "not git repo" from "no commits yet"
+
+## [1.3.2] - 2026-03-10
+...
+```
+
+Rules:
+- If `CHANGELOG.md` does not exist, create it with the full header + new version section.
+- If it exists and has an `## [Unreleased]` section: insert the new versioned section immediately after `## [Unreleased]`. Move any items already in `## [Unreleased]` into the new versioned section.
+- If it exists with no `## [Unreleased]`: insert the new versioned section at the top (after the header).
+- Omit empty categories (don't write `### Fixed` if there are no fixed entries).
+- Use today's date (from `date "+%Y-%m-%d"`).
+
+#### Step 6 — Save elephant memory entry
+
+After writing the changelog, save a `[!!]` entry to `.elephant/memory.md`:
+
+```
+[!!] YYYY-MM-DD HH:MM : release X.Y.Z — N features, M fixes
+```
+
+(caveman-compressed as usual for memory entries)
+
+#### Step 7 — Report
+
+```
+CHANGELOG.md updated — v1.4.0 (2026-04-16)
+  Added:   2 entries
+  Fixed:   3 entries
+  Changed: 1 entry
+
+Next steps:
+  git add CHANGELOG.md && git commit -m "chore: update changelog for v1.4.0"
+  git tag v1.4.0
+```
+
+Do NOT automatically commit or tag — show the commands and let the user run them.
