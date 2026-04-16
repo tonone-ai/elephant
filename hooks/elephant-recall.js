@@ -152,13 +152,13 @@ function main() {
   const header = migrated
     ? `🐘 memory migrated — ${migrated} entries moved to .elephant/memory.md`
     : `🐘 memory loaded — ${total} entries`;
-  const ctx = [header, body, `└ ${imp} important · newest: ${newest}`].join(
+  const ctx = [header, body, `└ ${imp} important · latest: ${newest}`].join(
     "\n",
   );
 
   const statusLine = migrated
     ? `🐘 migrated ${migrated} entries → .elephant/memory.md`
-    : `🐘 ${total} entries loaded (${imp} important · newest: ${newest})`;
+    : `🐘 ${total} entries loaded (${imp} important · latest: ${newest})`;
 
   emit(statusLine, ctx);
 }
