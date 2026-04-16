@@ -38,3 +38,5 @@
 2026-04-16 22:18 : feat: move gh pr create autorecord to PreToolUse with auto-commit+push — @fatih
 2026-04-16 22:29 : feat: add agent-commit note to local memory header — bump to v1.4.3 — @fatih
 2026-04-16 22:31 : fix: make header-strip regex global to sweep stale duplicate headers — @fatih
+2026-04-16 22:56 : chore: restyle memory entries and drop pre-release noise — @fatih
+[!!] 2026-04-16 22:56 : PR: chore: restyle memory entries and drop pre-release noise — @fatih
