@@ -1,8 +1,8 @@
 ---
 name: elephant
-description: Persistent memory commands. /elephant save <text> — write entry. /elephant save !! <text> — write important entry. /elephant show — print memory. /elephant compact — compress old entries. /elephant takeover [N] — seed memory from git history (cold start bootstrap). /elephant changelog — generate/update CHANGELOG.md with version management. /elephant update — pull latest elephant from GitHub and install.
+description: Persistent memory commands. /elephant save <text> — write entry. /elephant save !! <text> — write important entry. /elephant show — print memory. /elephant compact — compress old entries. /elephant takeover [N] — seed memory from git history (cold start bootstrap). /elephant changelog — generate/update CHANGELOG.md with version management. /elephant readme — generate/update README.md from repo context. /elephant update — pull latest elephant from GitHub and install.
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
-version: 1.2.1
+version: 1.3.0
 author: tonone-ai <hello@tonone.ai>
 license: MIT
 ---
@@ -396,17 +396,173 @@ After writing the changelog, save a `[!!]` entry to `.elephant/memory.md`:
 
 (caveman-compressed as usual for memory entries)
 
-#### Step 7 — Report
+#### Step 7 — Auto-update README.md version badge
 
-```
+After writing CHANGELOG.md, silently update version references in `README.md` if it exists.
+
+Find all occurrences of the old version string (e.g. `1.3.2`) in README.md and replace with the new version. Common patterns to update:
+
+- `version-X.Y.Z-green` (shields.io badge)
+- `v1.3.2` anywhere in the file
+- `"version": "1.3.2"` — skip (that's package.json territory)
+
+Use exact string replace — do NOT regenerate the README. Only update version strings.
+
+If README.md not found or no version strings matched: skip silently.
+
+Report `README.md version badge updated: vOLD → vNEW` if changed, nothing if skipped.
+
+#### Step 8 — Report
+
+```text
 CHANGELOG.md updated — v1.4.0 (2026-04-16)
   Added:   2 entries
   Fixed:   3 entries
   Changed: 1 entry
 
+README.md version badge updated: v1.3.2 → v1.4.0
+
 Next steps:
-  git add CHANGELOG.md && git commit -m "chore: update changelog for v1.4.0"
+  git add CHANGELOG.md README.md && git commit -m "chore: update changelog for v1.4.0"
   git tag v1.4.0
 ```
 
 Do NOT automatically commit or tag — show the commands and let the user run them.
+
+---
+
+### `/elephant readme`
+
+Generate or update `README.md` for the current repo. Uses git history, elephant memory, and project metadata as source material. Writes human-quality prose — not caveman style.
+
+#### Step 1 — Collect context
+
+Run in parallel:
+
+```bash
+git remote get-url origin 2>/dev/null
+git log --format="%s" -30 --no-merges 2>/dev/null
+git log --format="%ci|||%s" -1 2>/dev/null
+date "+%Y-%m-%d"
+```
+
+Also read (all in parallel):
+- `package.json` — name, description, version, scripts, main entry
+- `pyproject.toml` — name, description, version (Python projects)
+- `Cargo.toml` — name, description, version (Rust projects)
+- `.elephant/memory.md` — important entries (`[!!]`) for context
+- `CHANGELOG.md` — most recent release version + summary
+- existing `README.md` — preserve user-written sections
+
+#### Step 2 — Determine mode
+
+**Create mode** (no README.md): generate full README from scratch.
+
+**Update mode** (README.md exists): preserve existing structure. Only regenerate sections marked with elephant update markers OR update specific known fields:
+- Version badge (shields.io `version-X.Y.Z`)
+- Last updated date
+- Any section between `<!-- elephant:start -->` and `<!-- elephant:end -->` markers
+
+If no elephant markers exist in an existing README, ask user via `AskUserQuestion`:
+
+```text
+README.md exists but has no elephant markers.
+
+Choose:
+  [1] Full regenerate — replace entire README.md (recommended for auto-generated READMEs)
+  [2] Add elephant section — insert a new section at the bottom with project overview
+  [3] Cancel — leave README.md unchanged
+```
+
+#### Step 3 — Determine project type and commands
+
+From collected context, infer:
+- **Project type**: CLI tool, library, plugin, web app, API, etc. — from package.json `main`/`bin`, repo name patterns, commit subjects
+- **Install method**: npm/pip/cargo/manual — from package.json/pyproject.toml/Cargo.toml
+- **Commands/API**: extract from package.json `scripts`, bin entries, commit subjects mentioning commands (e.g. `feat: add /foo command`)
+- **Stack**: from dependencies or file patterns
+
+#### Step 4 — Generate README content
+
+Write full README in this structure (omit sections with no data):
+
+```markdown
+# [project name]
+
+[1–2 sentence description — what it is and why it exists]
+
+## Install
+
+[install commands based on project type]
+
+## Usage
+
+[commands table or API overview — if discoverable]
+
+## How it works
+
+[brief explanation of architecture or key concept — from memory/commits]
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for full release history.
+
+## License
+
+[license from package.json/pyproject/Cargo or "MIT" as default]
+```
+
+Rules:
+- Write full English sentences — no caveman compression (this is user-facing docs)
+- Keep it concise: prefer 1 clear sentence over 3 vague ones
+- If install method unknown, write `# Install` with a TODO placeholder
+- If project has a `docs/` folder, link to it: `See [docs/](docs/) for full documentation.`
+- For plugins/extensions: include marketplace/install instructions if pattern is recognizable
+- Do NOT include elephant memory raw entries in the README — synthesize them into prose
+
+#### Step 5 — Write README.md
+
+**Create mode**: write the full generated content.
+
+**Update mode (full regenerate)**: overwrite with new content.
+
+**Update mode (add elephant section)**: append to existing README.md:
+
+```markdown
+
+---
+
+<!-- elephant:start -->
+## About this project
+
+[generated overview paragraph]
+
+*Auto-maintained by [elephant](https://github.com/tonone-ai/elephant). Last updated: YYYY-MM-DD.*
+<!-- elephant:end -->
+```
+
+**Update mode (markers exist)**: replace content between `<!-- elephant:start -->` and `<!-- elephant:end -->` only.
+
+#### Step 6 — Save memory
+
+```text
+YYYY-MM-DD HH:MM : readme updated — [mode: created/regenerated/section added]
+```
+
+Routine entry (no `[!!]`).
+
+#### Step 7 — Output
+
+```text
+README.md [created/updated] — YYYY-MM-DD
+
+Sections written:
+  ✓ Install
+  ✓ Usage (3 commands detected)
+  ✓ How it works
+  ✓ Changelog
+  ✗ License (not found — added TODO)
+
+Next step:
+  git add README.md && git commit -m "docs: update README.md"
+```
