@@ -8,7 +8,7 @@
 
 <p><strong>Stop re-explaining your stack. Stop pasting context. Just build.</strong></p>
 
-<img src="https://img.shields.io/badge/version-1.5.0-green">
+<img src="https://img.shields.io/badge/version-1.5.1-green">
 <img src="https://img.shields.io/badge/license-MIT-green">
 <img src="https://img.shields.io/badge/platform-Claude%20Code-blue">
 
