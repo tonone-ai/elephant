@@ -1,8 +1,4 @@
----
-> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.
-> **For agents:** commit this file with your changes — it's shared team memory, not a local/generated file to gitignore.
----
-
+undefined
 2026-04-13 01:02 : docs: add elephant.tonone.ai link to README — @fatih.unver
 2026-04-13 01:02 : fix: add marketplace.json and correct install instructions — @fatih.unver
 2026-04-13 01:02 : docs: add elephant.tonone.ai link to README — @fatih.unver
@@ -38,3 +34,4 @@
 2026-04-16 22:18 : feat: move gh pr create autorecord to PreToolUse with auto-commit+push — @fatih
 2026-04-16 22:29 : feat: add agent-commit note to local memory header — bump to v1.4.3 — @fatih
 2026-04-16 22:31 : fix: make header-strip regex global to sweep stale duplicate headers — @fatih
+2026-04-16 22:42 : chore: reseed memory from git history takeover — @fatih
