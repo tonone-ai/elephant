@@ -9,7 +9,7 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 ### Fixed
 
-- pass `LOCAL_HEADER` to `appendLines` on the local memory write path in autorecord — the missing third argument caused the hook to write `undefined\n` on top of `.elephant/memory.md` and, on the next run, strip the real header and stack a second `undefined` line above the entries
+- collapse duplicate memory entries when a commit and the matching `gh pr create` describe the same change — autorecord dedupe now normalizes the `PR:` prefix (and tolerates the `REPO :` prefix used in global memory) so `git commit -m "X"` followed by `gh pr create --title "X"` no longer leaves both `X` and `PR: X` in `.elephant/memory.md`
 
 ## [1.5.0] - 2026-04-16
 
