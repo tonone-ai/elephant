@@ -11,6 +11,7 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 - add `— @author` suffix to every memory entry — writer identity derived from `git config user.email` local-part so teammates can see who added what to `.elephant/memory.md`
 - attribute takeover entries to original commit author — `/elephant takeover` now reads `%ae` from git log and stamps each seeded entry with its true author, not just the current user
+- move `gh pr create` autorecord from PostToolUse to PreToolUse — writes memory entry, auto-commits it as `chore: autorecord memory sync`, and pushes (if upstream set) so the PR picks up the memory update in its initial diff instead of leaving dirty drift after the PR is opened; guarded against protected branches (main/master/trunk/develop)
 
 ### Changed
 
