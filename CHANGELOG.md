@@ -5,6 +5,12 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-04-16
+
+### Fixed
+
+- collapse duplicate memory entries when a commit and the matching `gh pr create` describe the same change — autorecord dedupe now normalizes the `PR:` prefix (and tolerates the `REPO :` prefix used in global memory) so `git commit -m "X"` followed by `gh pr create --title "X"` no longer leaves both `X` and `PR: X` in `.elephant/memory.md`
+
 ## [1.5.0] - 2026-04-16
 
 ### Added

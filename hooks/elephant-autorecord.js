@@ -80,6 +80,15 @@ function getAuthor() {
   return process.env.USER || "unknown";
 }
 
+// "PR: foo" and "foo" describe the same logical change — strip the prefix so a
+// commit recorded by PostToolUse and the matching `gh pr create` recorded by
+// PreToolUse collapse into one entry instead of stacking a duplicate line.
+// Also handles the global-memory format where the PR: prefix sits after the
+// `REPO : ` prefix (e.g. `elephant : PR: chore: foo`).
+function dedupeKey(text) {
+  return text.replace(/^([^:]+ : )?PR:\s*/i, "$1").trim();
+}
+
 function readExistingTexts(filePath) {
   try {
     return new Set(
@@ -88,11 +97,12 @@ function readExistingTexts(filePath) {
         .split("\n")
         .filter(Boolean)
         .map((l) =>
-          l
-            .replace(/^\[!!\]\s*/, "")
-            .replace(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}\s*:\s*/, "")
-            .replace(/\s*—\s*@[\w.-]+\s*$/, "")
-            .trim(),
+          dedupeKey(
+            l
+              .replace(/^\[!!\]\s*/, "")
+              .replace(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}\s*:\s*/, "")
+              .replace(/\s*—\s*@[\w.-]+\s*$/, ""),
+          ),
         ),
     );
   } catch {
@@ -247,12 +257,15 @@ function main() {
     const existingLocal = readExistingTexts(LOCAL_MEM);
     const existingGlobal = readExistingTexts(GLOBAL_MEM);
 
-    const newLocal = entries.filter((e) => !existingLocal.has(e.text));
-    const newGlobal = entries.filter(
-      (e) =>
-        !existingGlobal.has(`${REPO} : ${e.text}`) &&
-        !existingGlobal.has(e.text),
+    const newLocal = entries.filter(
+      (e) => !existingLocal.has(dedupeKey(e.text)),
     );
+    const newGlobal = entries.filter((e) => {
+      const key = dedupeKey(e.text);
+      return (
+        !existingGlobal.has(`${REPO} : ${key}`) && !existingGlobal.has(key)
+      );
+    });
 
     appendLines(
       LOCAL_MEM,
