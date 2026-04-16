@@ -8,6 +8,7 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const { execSync } = require("child_process");
 
 const LOCAL_MEM = path.join(process.cwd(), ".elephant", "memory.md");
 const GLOBAL_MEM = path.join(os.homedir(), ".claude", "elephant", "memory.md");
@@ -15,6 +16,31 @@ const REPO = path.basename(process.cwd());
 
 const HEADER =
   "---\n> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.\n---\n";
+
+// Subjects that are pure git-history noise — Claude can always `git log` for them.
+const NOISE_PATTERNS = [
+  /^Merge pull request #\d+/i,
+  /^Merge branch /i,
+  /^Merge remote-tracking branch /i,
+  /^chore:\s*bump (version|to v?\d)/i,
+  /^chore:\s*release /i,
+  /^v\d+\.\d+\.\d+/,
+  /^release\s+v?\d+\.\d+\.\d+/i,
+];
+
+function isNoise(subject) {
+  return NOISE_PATTERNS.some((re) => re.test(subject));
+}
+
+// Only mark [!!] for commits with real engineering signal.
+// Plain feat:/fix: are routine — they compact after 7 days, which is fine.
+function isImportant(subject) {
+  return (
+    /^(breaking|revert|release|deploy)[\s!:(]/i.test(subject) ||
+    /^(feat|fix)!:/i.test(subject) ||
+    /BREAKING CHANGE/i.test(subject)
+  );
+}
 
 function caveman(text) {
   return text
@@ -30,6 +56,24 @@ function getTimestamp() {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
 }
 
+function getAuthor() {
+  try {
+    const email = execSync("git config user.email", {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+    if (email) return email.split("@")[0];
+  } catch {}
+  try {
+    const name = execSync("git config user.name", {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+    if (name) return name.split(/\s+/)[0].toLowerCase();
+  } catch {}
+  return process.env.USER || "unknown";
+}
+
 function readExistingTexts(filePath) {
   try {
     return new Set(
@@ -41,6 +85,7 @@ function readExistingTexts(filePath) {
           l
             .replace(/^\[!!\]\s*/, "")
             .replace(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}\s*:\s*/, "")
+            .replace(/\s*—\s*@[\w.-]+\s*$/, "")
             .trim(),
         ),
     );
@@ -106,19 +151,21 @@ function main() {
     }
 
     const ts = getTimestamp();
+    const author = getAuthor();
     const entries = [];
 
     // git commit
     const commitMsg = extractCommitMsg(cmd);
-    if (commitMsg) {
-      const important =
-        /^(feat|fix|breaking|release|deploy|revert)[\s!:(]/.test(commitMsg);
-      entries.push({ text: caveman(commitMsg), important });
+    if (commitMsg && !isNoise(commitMsg)) {
+      entries.push({
+        text: caveman(commitMsg),
+        important: isImportant(commitMsg),
+      });
     }
 
-    // gh pr create
+    // gh pr create — keep these as [!!] since PR creation is always a deliberate release signal
     const prMatch = cmd.match(/gh pr create[\s\S]*?--title ["']([^"']+)["']/);
-    if (prMatch) {
+    if (prMatch && !isNoise(prMatch[1])) {
       entries.push({ text: caveman("PR: " + prMatch[1]), important: true });
     }
 
@@ -139,12 +186,15 @@ function main() {
 
     appendLines(
       LOCAL_MEM,
-      newLocal.map((e) => `${e.important ? "[!!] " : ""}${ts} : ${e.text}`),
+      newLocal.map(
+        (e) => `${e.important ? "[!!] " : ""}${ts} : ${e.text} — @${author}`,
+      ),
     );
     appendLines(
       GLOBAL_MEM,
       newGlobal.map(
-        (e) => `${e.important ? "[!!] " : ""}${ts} : ${REPO} : ${e.text}`,
+        (e) =>
+          `${e.important ? "[!!] " : ""}${ts} : ${REPO} : ${e.text} — @${author}`,
       ),
     );
 
