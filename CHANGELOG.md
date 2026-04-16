@@ -5,6 +5,12 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-04-16
+
+### Fixed
+
+- pass `LOCAL_HEADER` to `appendLines` on the local memory write path in autorecord — the missing third argument caused the hook to write `undefined\n` on top of `.elephant/memory.md` and, on the next run, strip the real header and stack a second `undefined` line above the entries
+
 ## [1.5.0] - 2026-04-16
 
 ### Added

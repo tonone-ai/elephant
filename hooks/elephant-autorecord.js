@@ -259,6 +259,7 @@ function main() {
       newLocal.map(
         (e) => `${e.important ? "[!!] " : ""}${ts} : ${e.text} — @${author}`,
       ),
+      LOCAL_HEADER,
     );
     appendLines(
       GLOBAL_MEM,
