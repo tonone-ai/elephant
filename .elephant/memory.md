@@ -1,3 +1,9 @@
+2026-04-16 16:46 : wrote docs/superpowers/specs/2026-04-16-post-engrave-auto-commit-design.md
+2026-04-16 16:46 : docs: add post-engrave auto-commit design spec
+[!!] 2026-04-16 16:46 : fix: auto-commit memory after engrave in stop hook
+[!!] 2026-04-16 16:46 : PR: fix: auto-commit memory after engrave in stop hook
+[!!] 2026-04-16 16:46 : fix: rename newest to latest in recall footer
+[!!] 2026-04-16 16:46 : PR: fix: rename newest to latest in recall footer
 [!!] 2026-04-16 14:37 : release v1.2.0 — changelog+update commands added, CHANGELOG.md created
 [!!] 2026-04-13 01:13 : Merge pull request #4 from tonone-ai/fix/plugin-install-command
 [!!] 2026-04-13 01:12 : fix: correct install command and plugin.json format
