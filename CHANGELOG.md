@@ -72,3 +72,6 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 - fix marketplace.json missing from initial release — broke two-step plugin install flow
 - fix incorrect install command format in README — `claude plugins install` syntax required two steps, not one
+
+---
+> Changelog maintained automatically by [🐘 elephant](https://github.com/tonone-ai/elephant) — keep your changelog up to date without the manual work.
