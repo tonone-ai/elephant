@@ -40,3 +40,4 @@
 2026-04-16 22:31 : fix: make header-strip regex global to sweep stale duplicate headers — @fatih
 2026-04-16 22:42 : chore: reseed memory from git history takeover — @fatih
 [!!] 2026-04-16 22:43 : PR: chore: reseed memory from git history takeover — @fatih
+2026-04-16 22:48 : chore: restore local memory header clobbered by autorecord bug — @fatih
