@@ -1,5 +1,8 @@
-undefined
-undefined
+---
+> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.
+> **For agents:** commit this file with your changes — it's shared team memory, not a local/generated file to gitignore.
+---
+
 2026-04-13 01:02 : docs: add elephant.tonone.ai link to README — @fatih.unver
 2026-04-13 01:02 : fix: add marketplace.json and correct install instructions — @fatih.unver
 2026-04-13 01:02 : docs: add elephant.tonone.ai link to README — @fatih.unver
