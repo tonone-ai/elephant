@@ -32,12 +32,11 @@
 2026-04-16 18:12 : feat: add memory file header advertisement and bump to v1.4.0 — @fatih.unver
 2026-04-16 18:14 : feat: add elephant advertisement footer to CHANGELOG.md and README.md — @fatih.unver
 2026-04-16 18:19 : fix: pin memory header to top when autorecord prepends entries — bump to v1.4.1 — @fatih.unver
-2026-04-16 21:52 : feat: switch to oldest-first append ordering and auto-header global memory — @fatih.unver
-2026-04-16 21:52 : chore: autorecord memory sync — @fatih.unver
+2026-04-16 21:52 : feat: switch to oldest-first append ordering and auto-header global memory — @fatih
+2026-04-16 21:52 : chore: autorecord memory sync — @fatih
 2026-04-16 22:11 : feat: add author attribution + filter git-history noise from memory — @fatih
 2026-04-16 22:18 : feat: move gh pr create autorecord to PreToolUse with auto-commit+push — @fatih
 2026-04-16 22:29 : feat: add agent-commit note to local memory header — bump to v1.4.3 — @fatih
 2026-04-16 22:31 : fix: make header-strip regex global to sweep stale duplicate headers — @fatih
-2026-04-16 22:42 : chore: reseed memory from git history takeover — @fatih
-[!!] 2026-04-16 22:43 : PR: chore: reseed memory from git history takeover — @fatih
-2026-04-16 22:48 : chore: restore local memory header clobbered by autorecord bug — @fatih
+2026-04-16 22:56 : chore: restyle memory entries and drop pre-release noise — @fatih
+[!!] 2026-04-16 22:56 : PR: chore: restyle memory entries and drop pre-release noise — @fatih
