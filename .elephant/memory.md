@@ -1,3 +1,4 @@
+[!!] 2026-04-16 17:00 : feat: add autorecord hook — silent PostToolUse memory write
 2026-04-16 16:47 : wrote hooks/elephant-engrave.js
 2026-04-16 16:46 : wrote docs/superpowers/specs/2026-04-16-post-engrave-auto-commit-design.md
 2026-04-16 16:46 : docs: add post-engrave auto-commit design spec
