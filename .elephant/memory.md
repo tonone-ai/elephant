@@ -2,6 +2,8 @@
 > Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.
 ---
 
+[!!] 2026-04-16 21:52 : PR: feat: oldest-first memory ordering + auto-header global memory file (v1.4.2)
+2026-04-16 21:52 : chore: bump to v1.4.2 and update changelog
 [!!] 2026-04-16 21:52 : feat: switch to oldest-first append ordering and auto-header global memory
 [!!] 2026-04-16 18:14 : feat: add elephant advertisement footer to CHANGELOG.md and README.md
 [!!] 2026-04-16 18:12 : PR: feat: add memory file header advertisement and bump to v1.4.0
