@@ -17,7 +17,10 @@ const LOCAL_MEM = path.join(process.cwd(), ".elephant", "memory.md");
 const GLOBAL_MEM = path.join(os.homedir(), ".claude", "elephant", "memory.md");
 const REPO = path.basename(process.cwd());
 
-const HEADER =
+const LOCAL_HEADER =
+  "---\n> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.\n> **For agents:** commit this file with your changes — it's shared team memory, not a local/generated file to gitignore.\n---\n";
+
+const GLOBAL_HEADER =
   "---\n> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.\n---\n";
 
 // Subjects that are pure git-history noise — Claude can always `git log` for them.
@@ -97,20 +100,22 @@ function readExistingTexts(filePath) {
   }
 }
 
-function appendLines(filePath, lines) {
+function appendLines(filePath, lines, header) {
   if (!lines.length) return;
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   let existing = fs.existsSync(filePath)
     ? fs.readFileSync(filePath, "utf8")
     : "";
 
-  // Strip existing header (if any) so it can be re-pinned at top via HEADER constant
-  const headerRe = /\n*---\n> Memory managed by[^\n]*\n---\n*/;
+  // Strip any existing header blocks (one or more `>` lines between `---` fences)
+  // so the caller's header constant can be re-pinned fresh. Uses /g to sweep up
+  // duplicates left behind when an older hook version ran against a newer file.
+  const headerRe = /\n*---\n(?:>[^\n]*\n)+---\n*/g;
   existing = existing.replace(headerRe, "\n").replace(/^\n+/, "");
 
   const body = existing.trimEnd();
   const newContent = (body ? body + "\n" : "") + lines.join("\n") + "\n";
-  fs.writeFileSync(filePath, HEADER + "\n" + newContent);
+  fs.writeFileSync(filePath, header + "\n" + newContent);
 }
 
 const PROTECTED_BRANCHES = new Set(["main", "master", "trunk", "develop"]);
@@ -261,6 +266,7 @@ function main() {
         (e) =>
           `${e.important ? "[!!] " : ""}${ts} : ${REPO} : ${e.text} — @${author}`,
       ),
+      GLOBAL_HEADER,
     );
 
     // PreToolUse (gh pr create): commit the memory so the PR picks it up.
