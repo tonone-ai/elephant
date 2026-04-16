@@ -7,14 +7,6 @@
 
 const fs = require("fs");
 
-function escapeJson(s) {
-  return s
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, "\\n")
-    .replace(/\r/g, "\\r")
-    .replace(/\t/g, "\\t");
-}
 
 function main() {
   let raw = "";
@@ -75,11 +67,8 @@ function main() {
     ].join("\n");
 
     process.stdout.write(JSON.stringify({
-      hookSpecificOutput: {
-        hookEventName: "Stop",
-        decision: "block",
-        additionalContext: escapeJson(ctx),
-      },
+      decision: "block",
+      systemMessage: ctx,
     }) + "\n");
   });
 }

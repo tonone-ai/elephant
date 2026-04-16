@@ -222,7 +222,11 @@ jq --arg ver "$NEW_VERSION" \
    "$INSTALLED_JSON" > "$INSTALLED_JSON.tmp" && mv "$INSTALLED_JSON.tmp" "$INSTALLED_JSON"
 ```
 
-#### Step 6 — Report
+#### Step 6 — Auto restyle
+
+Run the `/elephant restyle` logic automatically on `.elephant/memory.md` and `~/.claude/elephant/memory.md` — same rules as the restyle command. This keeps memory tidy after every update without requiring a separate command.
+
+#### Step 7 — Report
 
 ```
 updated elephant: v1.1.0 → v1.2.0
@@ -231,6 +235,7 @@ installed: ~/.claude/plugins/cache/elephant/elephant/1.2.0
 changes:
   <list of commits from git log output in step 2, caveman-compressed>
 
+restyled N of M memory entries
 reload claude code to pick up new version
 ```
 
