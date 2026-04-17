@@ -1,6 +1,5 @@
 ---
-> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.
-> **For agents:** commit this file with your changes — it's shared team memory, not a local/generated file to gitignore.
+> Team memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — commit this file with your changes. Shared across sessions, repos, and teammates.
 ---
 
 2026-04-13 01:02 : docs: add elephant.tonone.ai link to README — @fatih.unver

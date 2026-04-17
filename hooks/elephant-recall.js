@@ -9,7 +9,8 @@ const path = require("path");
 const os = require("os");
 
 // Local memory = project dir (CWD), not plugin install dir
-const LOCAL_MEM = path.join(process.cwd(), ".elephant", "memory.md");
+const LOCAL_MEM = path.join(process.cwd(), "ELEPHANT.md");
+const LEGACY_LOCAL_MEM = path.join(process.cwd(), ".elephant", "memory.md");
 const GLOBAL_MEM = path.join(os.homedir(), ".claude", "elephant", "memory.md");
 const REPO = path.basename(process.cwd());
 
@@ -43,9 +44,27 @@ function parseFile(filePath, isGlobal) {
   }
 }
 
-// Migrate old tonone-stored memory to project dir (one-time, silent on fail)
+// Migrate legacy memory locations to ELEPHANT.md (one-time, silent on fail).
+// Two sources, in priority order:
+//   1. .elephant/memory.md in CWD (rename from v1.6.x and earlier layout)
+//   2. ~/.claude/plugins/cache/tonone-ai/tonone/*/.elephant/memory.md (pre-rebrand)
 function migrate() {
   if (fs.existsSync(LOCAL_MEM)) return null;
+
+  // In-repo rename: .elephant/memory.md → ELEPHANT.md
+  if (fs.existsSync(LEGACY_LOCAL_MEM)) {
+    try {
+      const content = fs.readFileSync(LEGACY_LOCAL_MEM, "utf8");
+      if (content.trim()) {
+        fs.writeFileSync(LOCAL_MEM, content);
+        try {
+          fs.unlinkSync(LEGACY_LOCAL_MEM);
+          fs.rmdirSync(path.dirname(LEGACY_LOCAL_MEM));
+        } catch {}
+        return content.split("\n").filter(Boolean).length;
+      }
+    } catch {}
+  }
 
   const tononeCacheBase = path.join(
     os.homedir(),
@@ -75,7 +94,6 @@ function migrate() {
   try {
     const content = fs.readFileSync(source, "utf8");
     if (!content.trim()) return null;
-    fs.mkdirSync(path.dirname(LOCAL_MEM), { recursive: true });
     fs.writeFileSync(LOCAL_MEM, content);
     return content.split("\n").filter(Boolean).length;
   } catch {
@@ -150,14 +168,14 @@ function main() {
 
   const body = capped.map((l) => `├ ${l}`).join("\n");
   const header = migrated
-    ? `🐘 memory migrated — ${migrated} entries moved to .elephant/memory.md`
+    ? `🐘 memory migrated — ${migrated} entries moved to ELEPHANT.md`
     : `🐘 memory loaded — ${total} entries`;
   const ctx = [header, body, `└ ${imp} important · latest: ${newest}`].join(
     "\n",
   );
 
   const statusLine = migrated
-    ? `🐘 migrated ${migrated} entries → .elephant/memory.md`
+    ? `🐘 migrated ${migrated} entries → ELEPHANT.md`
     : `🐘 ${total} entries loaded (${imp} important · latest: ${newest})`;
 
   emit(statusLine, ctx);

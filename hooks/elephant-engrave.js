@@ -10,14 +10,14 @@ const { execSync } = require("child_process");
 
 function tryCommitMemory() {
   try {
-    const status = execSync("git status --porcelain .elephant/memory.md", {
+    const status = execSync("git status --porcelain ELEPHANT.md", {
       encoding: "utf8",
     });
     if (!status.trim()) return;
     const branch = execSync("git branch --show-current", {
       encoding: "utf8",
     }).trim();
-    execSync("git add .elephant/memory.md");
+    execSync("git add ELEPHANT.md");
     execSync('git commit -m "chore: engrave session memory"');
     if (branch) execSync(`git push origin ${branch}`);
   } catch {
@@ -73,7 +73,7 @@ function main() {
     const pad = (n) => String(n).padStart(2, "0");
     const ts = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-    const msg = `🐘 Engrave (${ts}) — session end or topic shift? YES: edit .elephant/memory.md, 2-5 caveman lines newest-first [!!]=critical, say "🐘 memory updated". NO: nothing.`;
+    const msg = `🐘 Engrave (${ts}) — session end or topic shift? YES: edit ELEPHANT.md, 2-5 caveman lines newest-first [!!]=critical, say "🐘 memory updated". NO: nothing.`;
 
     process.stdout.write(
       JSON.stringify({
