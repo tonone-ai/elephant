@@ -1,9 +1,16 @@
+<!-- markdownlint-disable MD024 -->
+
 # Changelog
 
 All notable changes to elephant are documented here.
 Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
+
+### Changed
+
+- overhaul README to lead with changelog automation, team memory, and cross-repo memory — previously undersold the post-1.2 surface; new sections explain how `/elephant changelog` removes release-day archaeology and how committing `ELEPHANT.md` turns memory into a team artifact with `@author` attribution
+- revamp `elephant.tonone.ai` landing page — add changelog-flow walkthrough terminal, team-memory and cross-repo value props, and command cards for `/elephant changelog`, `/elephant readme`, and `/elephant update`
 
 ## [1.7.0] - 2026-04-17
 
