@@ -83,3 +83,5 @@
 2026-04-17 15:46 : fix: correct plugin install commands on landing page — @fatih
 2026-04-17 15:54 : foo — @fatih
 2026-04-17 15:54 : fix: autorecord writes before commit, no more dirty ELEPHANT.md — @fatih
+2026-04-17 15:59 : docs: tighten hero subheadline — @fatih
+2026-04-17 15:59 : docs: drop "No cloud, just a file." hedge from landing hero (PR #38) — @fatih
