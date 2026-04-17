@@ -122,12 +122,22 @@
         border: 1px solid var(--border);
         border-radius: 8px;
         padding: 0.9rem 1.75rem;
+        margin: 0;
         font-family: var(--mono);
         font-size: 0.95rem;
+        line-height: 1.6;
         color: var(--green);
         cursor: pointer;
         user-select: all;
         transition: border-color 0.15s;
+        text-align: left;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .hero-install code {
+        font-family: inherit;
+        color: inherit;
+        background: none;
       }
       .hero-install:hover {
         border-color: var(--green);
@@ -307,12 +317,11 @@
         Persistent memory, automated changelogs, and auto-maintained READMEs for
         Claude Code. Team-shared. Cross-repo. No cloud, just a file.
       </p>
-      <code class="hero-install"
-        >claude plugins install github:tonone-ai/elephant</code
-      >
-      <p class="hero-install-hint">
-        or: <code>curl -fsSL …/install.sh | bash</code>
-      </p>
+      <pre
+        class="hero-install"
+      ><code>claude plugin marketplace add tonone-ai/elephant
+claude plugin install elephant@elephant</code></pre>
+      <p class="hero-install-hint">Then restart Claude Code.</p>
     </section>
 
     <hr class="divider" />
