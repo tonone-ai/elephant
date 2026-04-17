@@ -40,3 +40,5 @@
 2026-04-16 22:31 : fix: make header-strip regex global to sweep stale duplicate headers — @fatih
 2026-04-16 22:56 : chore: restyle memory entries and drop pre-release noise — @fatih
 [!!] 2026-04-16 22:56 : PR: chore: restyle memory entries and drop pre-release noise — @fatih
+[!!] 2026-04-17 10:09 : feat!: drop PR autorecord path, relax changelog-guard, add value filter — bump to v1.6.0 — @fatih
+[!!] 2026-04-17 10:10 : PR: feat!: drop PR autorecord commit, relax changelog-guard, add value filter (v1.6.0) — @fatih
