@@ -304,8 +304,8 @@
         Claude Code <span class="accent">forgets</span>.<br />Elephant doesn't.
       </h1>
       <p class="hero-sub">
-        Stop re-explaining your stack every session. Elephant loads your project
-        context automatically — no cloud, no config, just a file.
+        Persistent memory, automated changelogs, and auto-maintained READMEs for
+        Claude Code. Team-shared. Cross-repo. No cloud, just a file.
       </p>
       <code class="hero-install"
         >claude plugins install github:tonone-ai/elephant</code
@@ -354,6 +354,60 @@
 
     <hr class="divider" />
 
+    <!-- CHANGELOG FEATURE -->
+    <div class="section">
+      <p class="section-label">Changelog pain? Gone.</p>
+      <p
+        style="
+          color: var(--cream-dim);
+          margin-bottom: 1.25rem;
+          font-size: 0.95rem;
+        "
+      >
+        <code>/elephant changelog</code> reads your git log since the last tag,
+        categorizes commits by conventional-commit prefix, suggests a semver
+        bump, and writes
+        <a
+          href="https://keepachangelog.com"
+          target="_blank"
+          rel="noopener"
+          style="color: var(--green)"
+          >Keep-a-Changelog</a
+        >
+        sections. Version badge in README? Updated too.
+      </p>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-prompt">/elephant changelog</span></div>
+          <div class="t-out">&nbsp;</div>
+          <div class="t-out">Current version: 1.6.0</div>
+          <div class="t-out">
+            Changes collected: 3 features, 2 fixes, 1 breaking
+          </div>
+          <div class="t-out">&nbsp;</div>
+          <div class="t-important">Recommendation: MAJOR → 2.0.0</div>
+          <div class="t-out">Reason: breaking changes detected</div>
+          <div class="t-out">&nbsp;</div>
+          <div class="t-out">Choose version:</div>
+          <div class="t-out">
+            &nbsp;&nbsp;[1] 2.0.0&nbsp; (major) — recommended
+          </div>
+          <div class="t-out">&nbsp;&nbsp;[2] 1.7.0&nbsp; (minor)</div>
+          <div class="t-out">&nbsp;&nbsp;[3] 1.6.1&nbsp; (patch)</div>
+          <div class="t-out">&nbsp;</div>
+          <div class="t-out">✓ CHANGELOG.md updated — v2.0.0 (2026-04-17)</div>
+          <div class="t-out">✓ README.md version badge: v1.6.0 → v2.0.0</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
     <!-- COMMANDS -->
     <div class="section">
       <p class="section-label">Commands</p>
@@ -391,6 +445,29 @@
             Marks important commits <span class="cmd-badge">!!</span>
           </div>
         </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/elephant changelog</div>
+          <div class="cmd-desc">
+            Generate or update <code>CHANGELOG.md</code>. Categorizes commits,
+            suggests semver bump, syncs README version badge. Keep-a-Changelog
+            format.
+          </div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/elephant readme</div>
+          <div class="cmd-desc">
+            Generate or update <code>README.md</code> from git history, memory,
+            and project metadata. Preserves your custom sections via
+            <code>&lt;!-- elephant:start --&gt;</code> markers.
+          </div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/elephant update</div>
+          <div class="cmd-desc">
+            Pull latest elephant from GitHub and install. No manual plugin
+            directory navigation.
+          </div>
+        </div>
       </div>
     </div>
 
@@ -406,6 +483,32 @@
           <div class="prop-desc">
             Every session starts cold. Stack, conventions, ongoing work, past
             decisions — gone. Elephant loads that context automatically.
+          </div>
+        </div>
+        <div class="prop">
+          <div class="prop-icon">📝</div>
+          <div class="prop-title">Changelogs write themselves</div>
+          <div class="prop-desc">
+            No more release-day archaeology. Semver-aware bump dialog,
+            categorized entries, synced README badge.
+          </div>
+        </div>
+        <div class="prop">
+          <div class="prop-icon">👥</div>
+          <div class="prop-title">Team memory</div>
+          <div class="prop-desc">
+            <code>ELEPHANT.md</code> gets committed. Every teammate, every
+            clone, same context — with <code>@author</code> attribution on every
+            entry.
+          </div>
+        </div>
+        <div class="prop">
+          <div class="prop-icon">🌍</div>
+          <div class="prop-title">Cross-repo</div>
+          <div class="prop-desc">
+            A global memory at <code>~/.claude/elephant/memory.md</code> keeps
+            context across every project you work on. Switch repos, keep the
+            thread.
           </div>
         </div>
         <div class="prop">

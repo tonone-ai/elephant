@@ -77,3 +77,4 @@
 2026-04-17 10:10 : chore: autorecord memory sync — @fatih
 [!!] 2026-04-17 12:22 : feat!: rename local memory to ELEPHANT.md at repo root — bump to v1.7.0 — @fatih
 2026-04-17 12:23 : chore: sync memory entry to ELEPHANT.md — @fatih
+2026-04-17 15:19 : docs: overhaul README + landing page to sell changelog/team/cross-repo features — @fatih
