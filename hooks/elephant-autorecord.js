@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// elephant-autorecord — PostToolUse hook (Bash)
-// Silently writes a memory entry after a successful `git commit`.
+// elephant-autorecord — PreToolUse hook (Bash)
+// Silently writes a memory entry before a `git commit` runs, then stages
+// ELEPHANT.md so the commit itself picks up the memory line (no drift).
 // No Claude involvement. No user-visible output. Never commits or pushes.
 
 "use strict";
@@ -8,7 +9,7 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-const { execSync } = require("child_process");
+const { execSync, execFileSync } = require("child_process");
 
 const LOCAL_MEM = path.join(process.cwd(), "ELEPHANT.md");
 const LEGACY_LOCAL_MEM = path.join(process.cwd(), ".elephant", "memory.md");
@@ -28,6 +29,8 @@ const NOISE_PATTERNS = [
   /^Merge remote-tracking branch /i,
   /^chore:\s*bump (version|to v?\d)/i,
   /^chore:\s*release /i,
+  /^chore:\s*sync ELEPHANT autorecord entry/i,
+  /^chore:\s*autorecord memory sync/i,
   /^v\d+\.\d+\.\d+/,
   /^release\s+v?\d+\.\d+\.\d+/i,
 ];
@@ -116,6 +119,56 @@ function appendLines(filePath, lines, header) {
   fs.writeFileSync(filePath, header + "\n" + newContent);
 }
 
+// Detect `git commit <pathspec>` forms. Returns true when the commit restricts
+// itself to explicit files (e.g. `git commit path/to/file -m "msg"` or
+// `git commit -m "msg" -- path`). In those cases we cannot safely stage
+// ELEPHANT.md because it won't be included in the commit.
+function hasExplicitPathspec(cmd) {
+  const m = cmd.match(/\bgit\s+commit\b(.*?)(?:&&|;|\||$)/s);
+  if (!m) return false;
+  const args = m[1];
+  if (/\s--\s+\S/.test(args)) return true;
+
+  const KNOWN_VALUE_FLAGS = new Set([
+    "-m",
+    "--message",
+    "-F",
+    "--file",
+    "-c",
+    "--reedit-message",
+    "-C",
+    "--reuse-message",
+    "--fixup",
+    "--squash",
+    "--author",
+    "--date",
+    "-t",
+    "--template",
+    "-S",
+    "--gpg-sign",
+    "--cleanup",
+  ]);
+
+  const tokens = args.match(/"([^"]*)"|'([^']*)'|\S+/g) || [];
+  let expectValue = false;
+  for (const tok of tokens) {
+    if (expectValue) {
+      expectValue = false;
+      continue;
+    }
+    if (tok.startsWith("-")) {
+      const flag = tok.split("=")[0];
+      if (KNOWN_VALUE_FLAGS.has(flag) && !tok.includes("=")) {
+        expectValue = true;
+      }
+      continue;
+    }
+    // Non-flag token that isn't a known flag value — treat as pathspec.
+    return true;
+  }
+  return false;
+}
+
 function extractCommitMsg(cmd) {
   // Heredoc: real newlines after JSON.parse of transcript
   const heredoc = cmd.match(
@@ -150,8 +203,20 @@ function main() {
       data = JSON.parse(raw);
     } catch {}
 
-    const cmd = data.tool_input?.command || "";
+    // Claude Code nests the command under either `tool_input` (PostToolUse)
+    // or `input` (PreToolUse) depending on version. Read both.
+    const cmd =
+      data.tool_input?.command || (data.input && data.input.command) || "";
     if (!cmd) {
+      process.exit(0);
+      return;
+    }
+
+    // Skip `git commit` invocations that target explicit pathspecs — adding
+    // ELEPHANT.md wouldn't be included in such commits and would leave the
+    // file staged afterward. Detected by the presence of a `--` separator or
+    // trailing non-flag argument after the subcommand.
+    if (hasExplicitPathspec(cmd)) {
       process.exit(0);
       return;
     }
@@ -204,6 +269,18 @@ function main() {
       ),
       GLOBAL_HEADER,
     );
+
+    // Stage ELEPHANT.md so the pending commit picks up the new entry. Silent
+    // on failure — if the file is gitignored, outside a repo, or the add
+    // races with the user, we leave the write as an unstaged change. Uses
+    // execFileSync with a fixed argv to avoid any shell interpretation.
+    if (newLocal.length) {
+      try {
+        execFileSync("git", ["add", "--", "ELEPHANT.md"], {
+          stdio: ["ignore", "ignore", "ignore"],
+        });
+      } catch {}
+    }
 
     process.exit(0);
   });

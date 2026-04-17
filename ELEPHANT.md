@@ -81,3 +81,5 @@
 2026-04-17 15:22 : docs: sell new features in README and landing page — @fatih
 2026-04-17 15:22 : chore: sync ELEPHANT autorecord entry — @fatih
 2026-04-17 15:46 : fix: correct plugin install commands on landing page — @fatih
+2026-04-17 15:54 : foo — @fatih
+2026-04-17 15:54 : fix: autorecord writes before commit, no more dirty ELEPHANT.md — @fatih

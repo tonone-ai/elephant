@@ -12,6 +12,14 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 - overhaul README to lead with changelog automation, team memory, and cross-repo memory — previously undersold the post-1.2 surface; new sections explain how `/elephant changelog` removes release-day archaeology and how committing `ELEPHANT.md` turns memory into a team artifact with `@author` attribution
 - revamp `elephant.tonone.ai` landing page — add changelog-flow walkthrough terminal, team-memory and cross-repo value props, and command cards for `/elephant changelog`, `/elephant readme`, and `/elephant update`
 
+## [1.7.1] - 2026-04-17
+
+### Fixed
+
+- autorecord no longer leaves `ELEPHANT.md` dirty after every commit — hook moves from PostToolUse to PreToolUse on `git commit`, writes the memory entry before the commit runs, and stages `ELEPHANT.md` so the pending commit picks up the new line in its own diff. No more trailing `chore: sync ELEPHANT autorecord entry` commits and no unstaged drift to reconcile at the end of a session.
+- filter legacy sync subjects (`chore: sync ELEPHANT autorecord entry`, `chore: autorecord memory sync`) as autorecord noise so any residual sync commits don't recurse into memory
+- skip autorecord when `git commit` targets an explicit pathspec — in that case `ELEPHANT.md` wouldn't be included in the commit anyway, so staging it would just leave unrelated drift
+
 ## [1.7.0] - 2026-04-17
 
 ### Changed
