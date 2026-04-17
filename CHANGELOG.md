@@ -5,6 +5,17 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-04-17
+
+### Removed
+
+- drop `gh pr create` autorecord path — writing a memory entry and committing it as `chore: autorecord memory sync` polluted every PR diff with a noise commit. PR titles duplicate commit subjects, so the entry was redundant anyway. Memory still captures commits via the PostToolUse `git commit` path.
+
+### Changed
+
+- relax changelog-guard from hard-block to advisory — `gh pr create` without `CHANGELOG.md` staged now emits a reminder on stderr instead of denying the command, so trivial or internal-only PRs can proceed without forcing a changelog entry
+- add "value filter" guidance to the skill — memory, CHANGELOG, and README updates are opt-in per change. Claude should not auto-invoke `/elephant save`, `/elephant changelog`, or `/elephant readme` after every action; only when the change is worth a future reader's attention
+
 ## [1.5.1] - 2026-04-16
 
 ### Fixed

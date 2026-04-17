@@ -1,10 +1,7 @@
 #!/usr/bin/env node
-// elephant-autorecord — PreToolUse + PostToolUse hook (Bash)
-// Silently writes memory entries on git commit / gh pr create.
-//   PostToolUse + git commit  → write entry (runs after commit succeeds)
-//   PreToolUse  + gh pr create → write entry, commit it, push it
-//     so the PR being created picks up the memory update in its initial diff
-// No Claude involvement. No user-visible output.
+// elephant-autorecord — PostToolUse hook (Bash)
+// Silently writes a memory entry after a successful `git commit`.
+// No Claude involvement. No user-visible output. Never commits or pushes.
 
 "use strict";
 
@@ -80,15 +77,6 @@ function getAuthor() {
   return process.env.USER || "unknown";
 }
 
-// "PR: foo" and "foo" describe the same logical change — strip the prefix so a
-// commit recorded by PostToolUse and the matching `gh pr create` recorded by
-// PreToolUse collapse into one entry instead of stacking a duplicate line.
-// Also handles the global-memory format where the PR: prefix sits after the
-// `REPO : ` prefix (e.g. `elephant : PR: chore: foo`).
-function dedupeKey(text) {
-  return text.replace(/^([^:]+ : )?PR:\s*/i, "$1").trim();
-}
-
 function readExistingTexts(filePath) {
   try {
     return new Set(
@@ -97,12 +85,11 @@ function readExistingTexts(filePath) {
         .split("\n")
         .filter(Boolean)
         .map((l) =>
-          dedupeKey(
-            l
-              .replace(/^\[!!\]\s*/, "")
-              .replace(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}\s*:\s*/, "")
-              .replace(/\s*—\s*@[\w.-]+\s*$/, ""),
-          ),
+          l
+            .replace(/^\[!!\]\s*/, "")
+            .replace(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}\s*:\s*/, "")
+            .replace(/\s*—\s*@[\w.-]+\s*$/, "")
+            .trim(),
         ),
     );
   } catch {
@@ -126,61 +113,6 @@ function appendLines(filePath, lines, header) {
   const body = existing.trimEnd();
   const newContent = (body ? body + "\n" : "") + lines.join("\n") + "\n";
   fs.writeFileSync(filePath, header + "\n" + newContent);
-}
-
-const PROTECTED_BRANCHES = new Set(["main", "master", "trunk", "develop"]);
-
-function currentBranch() {
-  try {
-    return execSync("git rev-parse --abbrev-ref HEAD", {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
-  } catch {
-    return "";
-  }
-}
-
-function hasUpstream() {
-  try {
-    execSync("git rev-parse --abbrev-ref --symbolic-full-name @{u}", {
-      stdio: ["ignore", "ignore", "ignore"],
-    });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-// Commit the freshly-written memory entry and push it so `gh pr create`
-// (which runs immediately after this PreToolUse hook) picks it up in the
-// initial PR diff. Silent on failure — never block the PR.
-function commitAndPushMemory() {
-  try {
-    const branch = currentBranch();
-    if (!branch || PROTECTED_BRANCHES.has(branch)) return;
-
-    execSync("git add .elephant/memory.md", { stdio: "ignore" });
-
-    // Nothing staged = memory entry was deduped against existing content
-    try {
-      execSync("git diff --cached --quiet", { stdio: "ignore" });
-      return; // exit 0 = no diff, nothing to commit
-    } catch {
-      // exit non-zero = there is a staged diff, proceed
-    }
-
-    execSync('git commit -m "chore: autorecord memory sync"', {
-      stdio: "ignore",
-    });
-
-    if (hasUpstream()) {
-      execSync(`git push origin ${branch}`, { stdio: "ignore" });
-    }
-    // No upstream: gh pr create will push the branch itself, including our commit.
-  } catch {
-    // Silent — never crash the hook
-  }
 }
 
 function extractCommitMsg(cmd) {
@@ -207,7 +139,7 @@ function main() {
     clearTimeout(timer);
 
     // Fast exit — skip JSON parse entirely if no relevant command
-    if (!raw.includes("git commit") && !raw.includes("gh pr create")) {
+    if (!raw.includes("git commit")) {
       process.exit(0);
       return;
     }
@@ -223,49 +155,28 @@ function main() {
       return;
     }
 
-    const event = data.hook_event_name || "PostToolUse";
-    const ts = getTimestamp();
-    const author = getAuthor();
-    const entries = [];
-
-    // git commit → PostToolUse only (runs after the commit actually succeeded)
-    if (event === "PostToolUse") {
-      const commitMsg = extractCommitMsg(cmd);
-      if (commitMsg && !isNoise(commitMsg)) {
-        entries.push({
-          text: caveman(commitMsg),
-          important: isImportant(commitMsg),
-        });
-      }
-    }
-
-    // gh pr create → PreToolUse only, so the memory commit we create here
-    // is part of the branch HEAD when gh pr create runs next.
-    // Marked [!!] since PR creation is always a deliberate release signal.
-    if (event === "PreToolUse") {
-      const prMatch = cmd.match(/gh pr create[\s\S]*?--title ["']([^"']+)["']/);
-      if (prMatch && !isNoise(prMatch[1])) {
-        entries.push({ text: caveman("PR: " + prMatch[1]), important: true });
-      }
-    }
-
-    if (!entries.length) {
+    const commitMsg = extractCommitMsg(cmd);
+    if (!commitMsg || isNoise(commitMsg)) {
       process.exit(0);
       return;
     }
 
+    const entry = {
+      text: caveman(commitMsg),
+      important: isImportant(commitMsg),
+    };
+
+    const ts = getTimestamp();
+    const author = getAuthor();
     const existingLocal = readExistingTexts(LOCAL_MEM);
     const existingGlobal = readExistingTexts(GLOBAL_MEM);
 
-    const newLocal = entries.filter(
-      (e) => !existingLocal.has(dedupeKey(e.text)),
-    );
-    const newGlobal = entries.filter((e) => {
-      const key = dedupeKey(e.text);
-      return (
-        !existingGlobal.has(`${REPO} : ${key}`) && !existingGlobal.has(key)
-      );
-    });
+    const newLocal = existingLocal.has(entry.text) ? [] : [entry];
+    const newGlobal =
+      existingGlobal.has(`${REPO} : ${entry.text}`) ||
+      existingGlobal.has(entry.text)
+        ? []
+        : [entry];
 
     appendLines(
       LOCAL_MEM,
@@ -282,11 +193,6 @@ function main() {
       ),
       GLOBAL_HEADER,
     );
-
-    // PreToolUse (gh pr create): commit the memory so the PR picks it up.
-    if (event === "PreToolUse") {
-      commitAndPushMemory();
-    }
 
     process.exit(0);
   });

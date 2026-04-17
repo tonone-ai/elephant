@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // elephant-changelog-guard — PreToolUse hook (Bash matcher)
-// Blocks `gh pr create` if elephant is active and CHANGELOG.md not staged.
-// Forces /elephant changelog before PR creation.
+// Advisory only: when `gh pr create` runs without CHANGELOG.md staged,
+// prints a reminder. Never blocks — Claude decides whether the change
+// warrants a changelog entry.
 
 "use strict";
 
@@ -62,16 +63,10 @@ function main() {
       return;
     }
 
-    process.stdout.write(
-      JSON.stringify({
-        hookSpecificOutput: {
-          hookEventName: "PreToolUse",
-          permissionDecision: "deny",
-          permissionDecisionReason:
-            "Elephant active but CHANGELOG.md not staged. Run /elephant changelog first to update CHANGELOG.md and bump version, then commit it and create the PR.",
-        },
-      }) + "\n",
+    process.stderr.write(
+      "elephant: CHANGELOG.md not staged. If this PR has a user-visible change, run /elephant changelog before pushing. Skip for trivial/internal-only changes.\n",
     );
+    process.exit(0);
   });
 }
 

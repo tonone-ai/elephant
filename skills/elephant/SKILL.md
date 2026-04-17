@@ -2,7 +2,7 @@
 name: elephant
 description: Persistent memory commands. /elephant save <text> — write entry. /elephant save !! <text> — write important entry. /elephant show — print memory. /elephant compact — compress old entries. /elephant takeover [N] — seed memory from git history (cold start bootstrap). /elephant changelog — generate/update CHANGELOG.md with version management. /elephant readme — generate/update README.md from repo context. /elephant update — pull latest elephant from GitHub and install.
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
-version: 1.5.0
+version: 1.6.0
 author: tonone-ai <hello@tonone.ai>
 license: MIT
 ---
@@ -52,6 +52,19 @@ Rules:
 - When **appending** a new entry (save): insert the new line at the bottom of the file, after all existing entries.
 - When **writing** the file (compact, restyle, takeover): strip any existing header block, write header first, then entries.
 - The `---` fences and all `>` lines between them are a single unit — never treat them as memory entries, and never drop the **For agents** line from the local header.
+
+## When to write (value filter)
+
+Memory, CHANGELOG, and README updates are **opt-in per change**. Do **not** add entries just because a command, commit, or PR happened. Only write when there is something a future reader actually needs to know.
+
+| Write? | Memory entry                                                                               | CHANGELOG entry                                                        | README update                                           |
+| ------ | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- | ------------------------------------------------------- |
+| ✅ yes | non-obvious decision, incident, constraint, surprising behavior                            | user-visible change: added feature, fixed bug a user hit, breaking API | new public command/flag, changed install step, new demo |
+| ❌ no  | routine commit already captured by git log, trivial rename, ephemeral task, session recall | internal refactor with no behavior change, typo fix, test-only change  | anything not affecting how users install/use/invoke     |
+
+When in doubt, **skip**. It is better to have a terse memory/CHANGELOG than one padded with filler. Claude should not auto-invoke `/elephant save`, `/elephant changelog`, or `/elephant readme` after every action — only when the value filter above is clearly met.
+
+Autorecord (PostToolUse on `git commit`) is the one exception: it captures commit subjects silently so `git log` context survives across sessions. Even so, its noise filter (merge commits, version bumps, release tags) drops low-signal entries automatically.
 
 ## Commands
 
