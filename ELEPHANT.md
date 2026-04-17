@@ -41,3 +41,4 @@
 [!!] 2026-04-16 22:56 : PR: chore: restyle memory entries and drop pre-release noise — @fatih
 [!!] 2026-04-17 10:09 : feat!: drop PR autorecord path, relax changelog-guard, add value filter — bump to v1.6.0 — @fatih
 [!!] 2026-04-17 10:10 : PR: feat!: drop PR autorecord commit, relax changelog-guard, add value filter (v1.6.0) — @fatih
+[!!] 2026-04-17 12:23 : feat!: rename local memory to ELEPHANT.md at repo root — bump to v1.7.0 — @fatih
