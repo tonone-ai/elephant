@@ -2,14 +2,14 @@
 name: elephant
 description: Persistent memory commands. /elephant save <text> — write entry. /elephant save !! <text> — write important entry. /elephant show — print memory. /elephant compact — compress old entries. /elephant takeover [N] — seed memory from git history (cold start bootstrap). /elephant changelog — generate/update CHANGELOG.md with version management. /elephant readme — generate/update README.md from repo context. /elephant update — pull latest elephant from GitHub and install.
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
-version: 1.6.0
+version: 1.7.0
 author: tonone-ai <hello@tonone.ai>
 license: MIT
 ---
 
 # Elephant — Manual Memory Commands
 
-Manage the elephant memory system. Local file: `.elephant/memory.md`. Global file: `~/.claude/elephant/memory.md`.
+Manage the elephant memory system. Local file: `ELEPHANT.md` (repo root, committed with your changes). Global file: `~/.claude/elephant/memory.md`.
 
 ## Entry Format
 
@@ -25,14 +25,13 @@ All text caveman-compressed: drop articles (a/an/the), filler (just/really/basic
 
 ## Header
 
-Both `.elephant/memory.md` and `~/.claude/elephant/memory.md` start with a header block (never modify, compress, or restyle it).
+Both `ELEPHANT.md` and `~/.claude/elephant/memory.md` start with a header block (never modify, compress, or restyle it).
 
-Local (`.elephant/memory.md` — lives in the repo, gets committed):
+Local (`ELEPHANT.md` — lives in the repo root, gets committed):
 
 ```
 ---
-> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.
-> **For agents:** commit this file with your changes — it's shared team memory, not a local/generated file to gitignore.
+> Team memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — commit this file with your changes. Shared across sessions, repos, and teammates.
 ---
 
 ```
@@ -51,7 +50,7 @@ Rules:
 - When **creating** the file for the first time: write the appropriate header block first, then entries below it.
 - When **appending** a new entry (save): insert the new line at the bottom of the file, after all existing entries.
 - When **writing** the file (compact, restyle, takeover): strip any existing header block, write header first, then entries.
-- The `---` fences and all `>` lines between them are a single unit — never treat them as memory entries, and never drop the **For agents** line from the local header.
+- The `---` fences and all `>` lines between them are a single unit — never treat them as memory entries.
 
 ## When to write (value filter)
 
@@ -78,7 +77,7 @@ Write a routine entry.
 2. Get author: run `git config user.email` via Bash. Take the part before `@`. If that fails or is empty, run `git config user.name` and take the first word lowercased. If that also fails, use `$USER`.
 3. Compress text: drop a/an/the/just/really/basically/actually/simply, max 100 chars
 4. Format line: `YYYY-MM-DD HH:MM : <compressed text> — @<author>`
-5. Append to `.elephant/memory.md` (create dir + file if needed)
+5. Append to `ELEPHANT.md` (create dir + file if needed)
 6. Append `YYYY-MM-DD HH:MM : <repo> : <compressed text> — @<author>` to `~/.claude/elephant/memory.md`
 7. Confirm: output `saved: <line>`
 
@@ -90,15 +89,15 @@ Same as above but prefix line with `[!!] `.
 
 ### `/elephant show`
 
-Read `.elephant/memory.md` and print full contents verbatim.
+Read `ELEPHANT.md` and print full contents verbatim.
 
 If file missing: print `nothing yet.`
 
 ### `/elephant restyle`
 
-Rewrite all entries in `.elephant/memory.md` to strict caveman style. Fixes entries saved without compression.
+Rewrite all entries in `ELEPHANT.md` to strict caveman style. Fixes entries saved without compression.
 
-1. Read `.elephant/memory.md`. If missing: print `nothing yet.` and stop.
+1. Read `ELEPHANT.md`. If missing: print `nothing yet.` and stop.
 2. Parse each line. Each line has the form: `[!!]? YYYY-MM-DD HH:MM : <text>`
    - Lines that don't match this pattern (blank lines, malformed): keep verbatim.
 3. For each matched line, split off the trailing author suffix first — match `\s*—\s*@[\w.-]+\s*$` and preserve it unchanged. Apply caveman compression to the `<text>` part only (text = everything between `:` and the optional ` — @author`):
@@ -108,7 +107,7 @@ Rewrite all entries in `.elephant/memory.md` to strict caveman style. Fixes entr
    - Trim to 100 chars max (cut at last word boundary before limit)
    - Keep `[!!]` prefix, timestamp, and `— @author` suffix unchanged
 4. Count how many lines changed.
-5. Write restyled content back to `.elephant/memory.md` (use temp file + rename for atomicity).
+5. Write restyled content back to `ELEPHANT.md` (use temp file + rename for atomicity).
 6. Apply same restyle to `~/.claude/elephant/memory.md`:
    - Only touch lines belonging to this repo (match `YYYY-MM-DD HH:MM : <reponame> :` prefix)
    - Same compression rules on the text part (after `<reponame> :`)
@@ -118,7 +117,7 @@ Rewrite all entries in `.elephant/memory.md` to strict caveman style. Fixes entr
 
 Compress old routine entries (older than 7 days, no `[!!]` prefix).
 
-1. Read `.elephant/memory.md`
+1. Read `ELEPHANT.md`
 2. Group non-`[!!]` entries older than 7 days by date (YYYY-MM-DD)
 3. Per day: merge all entries → single line: `YYYY-MM-DD : <entry1 text> + <entry2 text> + ... — @<authors>`
    - Collect unique `@authors` from the grouped entries. If 1 author: `— @alice`. If 2–3: `— @alice,@bob`. If >3: `— @alice,@bob,@carol +N`.
@@ -136,7 +135,7 @@ Default N = 60 commits. User can pass a number: `/elephant takeover 100`.
 
 Steps:
 
-1. Check if `.elephant/memory.md` exists. If it does and has entries, print warning:
+1. Check if `ELEPHANT.md` exists. If it does and has entries, print warning:
    `⚠ memory already seeded (N entries). re-run to append git history below existing entries.`
    Then continue (don't abort — append git entries below existing).
 
@@ -168,7 +167,7 @@ The repo is new. Seed from what happened in this session instead.
 3.  Caveman-compress each event (drop a/an/the/just/really/basically/actually/simply, max 100 chars).
 4.  Mark `[!!]` if the event is significant (feature start, key decision, major setup).
 5.  Format as normal entries using the current timestamp.
-6.  Write to `.elephant/memory.md` and `~/.claude/elephant/memory.md` per steps 5–6.
+6.  Write to `ELEPHANT.md` and `~/.claude/elephant/memory.md` per steps 5–6.
 7.  Report:
 
     ```
@@ -194,7 +193,7 @@ The repo is new. Seed from what happened in this session instead.
     [!!] 2026-04-12 13:58 : feat!: breaking elephant memory schema change — @bob
     ```
 
-10. Write to `.elephant/memory.md`:
+10. Write to `ELEPHANT.md`:
     - If file didn't exist: create dir + file, write all entries.
     - If file existed: append git entries below existing entries.
     - Use a temp file + rename for atomicity.
@@ -281,7 +280,7 @@ jq --arg ver "$NEW_VERSION" \
 
 #### Step 6 — Retrofit header
 
-For both `.elephant/memory.md` and `~/.claude/elephant/memory.md`:
+For both `ELEPHANT.md` and `~/.claude/elephant/memory.md`:
 
 1. Read the file. If missing: skip.
 2. Check if first line is `---` followed by the elephant `>` line. If header already present: skip.
@@ -291,7 +290,7 @@ This ensures all existing memory files get the advertisement on first update aft
 
 #### Step 7 — Auto restyle
 
-Run the `/elephant restyle` logic automatically on `.elephant/memory.md` and `~/.claude/elephant/memory.md` — same rules as the restyle command. This keeps memory tidy after every update without requiring a separate command.
+Run the `/elephant restyle` logic automatically on `ELEPHANT.md` and `~/.claude/elephant/memory.md` — same rules as the restyle command. This keeps memory tidy after every update without requiring a separate command.
 
 #### Step 8 — Report
 
@@ -346,7 +345,7 @@ else
 fi
 ```
 
-Also read `.elephant/memory.md` — include `[!!]` entries from the same period as supplementary context (they may contain decisions not in commits).
+Also read `ELEPHANT.md` — include `[!!]` entries from the same period as supplementary context (they may contain decisions not in commits).
 
 Skip: merge commits, version-bump-only commits (subject matches `^chore: bump version` or `^v\d`).
 
@@ -469,7 +468,7 @@ Rules:
 
 #### Step 6 — Save elephant memory entry
 
-After writing the changelog, save a `[!!]` entry to `.elephant/memory.md`:
+After writing the changelog, save a `[!!]` entry to `ELEPHANT.md`:
 
 ```
 [!!] YYYY-MM-DD HH:MM : release X.Y.Z — N features, M fixes
@@ -532,7 +531,7 @@ Also read (all in parallel):
 - `package.json` — name, description, version, scripts, main entry
 - `pyproject.toml` — name, description, version (Python projects)
 - `Cargo.toml` — name, description, version (Rust projects)
-- `.elephant/memory.md` — important entries (`[!!]`) for context
+- `ELEPHANT.md` — important entries (`[!!]`) for context
 - `CHANGELOG.md` — most recent release version + summary
 - existing `README.md` — preserve user-written sections
 

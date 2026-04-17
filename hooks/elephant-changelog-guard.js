@@ -10,11 +10,16 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 
-const LOCAL_MEM = path.join(process.cwd(), ".elephant", "memory.md");
+const LOCAL_MEM = path.join(process.cwd(), "ELEPHANT.md");
+const LEGACY_LOCAL_MEM = path.join(process.cwd(), ".elephant", "memory.md");
 
 function elephantActive() {
   try {
     fs.accessSync(LOCAL_MEM);
+    return true;
+  } catch {}
+  try {
+    fs.accessSync(LEGACY_LOCAL_MEM);
     return true;
   } catch {
     return false;

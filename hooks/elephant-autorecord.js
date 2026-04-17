@@ -10,12 +10,13 @@ const path = require("path");
 const os = require("os");
 const { execSync } = require("child_process");
 
-const LOCAL_MEM = path.join(process.cwd(), ".elephant", "memory.md");
+const LOCAL_MEM = path.join(process.cwd(), "ELEPHANT.md");
+const LEGACY_LOCAL_MEM = path.join(process.cwd(), ".elephant", "memory.md");
 const GLOBAL_MEM = path.join(os.homedir(), ".claude", "elephant", "memory.md");
 const REPO = path.basename(process.cwd());
 
 const LOCAL_HEADER =
-  "---\n> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.\n> **For agents:** commit this file with your changes — it's shared team memory, not a local/generated file to gitignore.\n---\n";
+  "---\n> Team memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — commit this file with your changes. Shared across sessions, repos, and teammates.\n---\n";
 
 const GLOBAL_HEADER =
   "---\n> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.\n---\n";
@@ -165,6 +166,16 @@ function main() {
       text: caveman(commitMsg),
       important: isImportant(commitMsg),
     };
+
+    // One-time migration: legacy .elephant/memory.md → ELEPHANT.md
+    if (fs.existsSync(LEGACY_LOCAL_MEM) && !fs.existsSync(LOCAL_MEM)) {
+      try {
+        fs.renameSync(LEGACY_LOCAL_MEM, LOCAL_MEM);
+        try {
+          fs.rmdirSync(path.dirname(LEGACY_LOCAL_MEM));
+        } catch {}
+      } catch {}
+    }
 
     const ts = getTimestamp();
     const author = getAuthor();

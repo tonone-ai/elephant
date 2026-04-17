@@ -5,6 +5,17 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-04-17
+
+### Changed
+
+- rename local memory file from `.elephant/memory.md` to `ELEPHANT.md` at repo root — the dot-prefixed directory was being pattern-matched as a local/cache file by agents, who then either gitignored it or treated uncommitted edits as stray drift to discard. Uppercase root-level name mirrors `CLAUDE.md` / `CHANGELOG.md` / `CODEOWNERS` and signals "commit this" unambiguously. Global memory path is unchanged.
+- simplify local header — the **For agents** anti-gitignore note is no longer necessary now that the filename itself carries the signal
+
+### Migration
+
+- autorecall (SessionStart) and autorecord (PostToolUse `git commit`) hooks both detect `.elephant/memory.md` on first run and move it to `ELEPHANT.md`, then remove the empty `.elephant/` directory. No manual action required — the move happens the next time elephant runs in a repo.
+
 ## [1.6.0] - 2026-04-17
 
 ### Removed

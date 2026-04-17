@@ -1,6 +1,5 @@
 ---
-> Memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — cross-session, cross-repo, cross-team memory for Claude Code.
-> **For agents:** commit this file with your changes — it's shared team memory, not a local/generated file to gitignore.
+> Team memory managed by [🐘 elephant](https://github.com/tonone-ai/elephant) — commit this file with your changes. Shared across sessions, repos, and teammates.
 ---
 
 2026-04-13 01:02 : docs: add elephant.tonone.ai link to README — @fatih.unver
@@ -42,3 +41,4 @@
 [!!] 2026-04-16 22:56 : PR: chore: restyle memory entries and drop pre-release noise — @fatih
 [!!] 2026-04-17 10:09 : feat!: drop PR autorecord path, relax changelog-guard, add value filter — bump to v1.6.0 — @fatih
 [!!] 2026-04-17 10:10 : PR: feat!: drop PR autorecord commit, relax changelog-guard, add value filter (v1.6.0) — @fatih
+[!!] 2026-04-17 12:23 : feat!: rename local memory to ELEPHANT.md at repo root — bump to v1.7.0 — @fatih

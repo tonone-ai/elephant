@@ -8,7 +8,7 @@
 
 <p><strong>Stop re-explaining your stack. Stop pasting context. Just build.</strong></p>
 
-<img src="https://img.shields.io/badge/version-1.5.1-green">
+<img src="https://img.shields.io/badge/version-1.7.0-green">
 <img src="https://img.shields.io/badge/license-MIT-green">
 <img src="https://img.shields.io/badge/platform-Claude%20Code-blue">
 
@@ -72,7 +72,7 @@ Restart Claude Code. Done.
 
 Elephant writes to two files:
 
-- **`.elephant/memory.md`** (local, project-specific)
+- **`ELEPHANT.md`** (local, repo root — commit this file with your changes)
 - **`~/.claude/elephant/memory.md`** (global, across all projects)
 
 Entries are caveman-compressed (articles and filler dropped) to minimize token usage.

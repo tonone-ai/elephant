@@ -25,4 +25,4 @@ Test by running the commands in Claude Code after installing locally.
 
 - Dependencies (no npm, pip, brew requirements)
 - Cloud sync or remote storage
-- Breaking changes to `.elephant/memory.md` format without a migration path
+- Breaking changes to `ELEPHANT.md` format without a migration path
