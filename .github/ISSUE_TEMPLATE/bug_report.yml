@@ -1,0 +1,84 @@
+name: Bug report
+description: Report something broken in elephant
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please fill in the details below.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+      placeholder: "/elephant save ... didn't write to ELEPHANT.md"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps so we can reproduce the behavior.
+      placeholder: |
+        1. Run `/elephant save foo`
+        2. Check `ELEPHANT.md`
+        3. Entry is missing / duplicated / corrupted
+    validations:
+      required: true
+
+  - type: input
+    id: claude-code-version
+    attributes:
+      label: Claude Code version
+      description: Output of `claude --version` or the IDE extension version.
+      placeholder: "e.g. 1.0.42"
+    validations:
+      required: true
+
+  - type: input
+    id: elephant-version
+    attributes:
+      label: elephant version
+      description: Check `.claude-plugin/plugin.json` or the README badge.
+      placeholder: "1.7.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows (WSL)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: elephant-snippet
+    attributes:
+      label: Relevant ELEPHANT.md / memory.md snippet
+      description: Paste only the relevant lines. Redact anything sensitive.
+      render: markdown
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error output
+      description: Paste any errors from Claude Code or the hook output.
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched existing issues and this is not a duplicate
+          required: true
+        - label: I am on the latest `main` or latest release
+          required: true

@@ -85,3 +85,4 @@
 2026-04-17 15:54 : fix: autorecord writes before commit, no more dirty ELEPHANT.md — @fatih
 2026-04-17 15:59 : docs: tighten hero subheadline — @fatih
 2026-04-17 15:59 : docs: drop "No cloud, just a file." hedge from landing hero (PR #38) — @fatih
+2026-04-18 19:04 : chore: add GitHub community health files — @fatih
