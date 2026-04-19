@@ -89,3 +89,6 @@
 2026-04-19 20:22 : chore: harden repo for open-source scale — @fatih
 2026-04-19 20:37 : fix(recall): drop frontmatter lines and sort entries newest-first — @fatih
 2026-04-19 20:46 : chore: bump README version badge to 1.7.2 — @fatih
+2026-04-19 23:06 : [!!] feat(docs): redesign landing to Memory Strata v2 — ivory/umber/ember, Fraunces+JetBrains Mono, stamp-E wordmark — @fatih
+2026-04-19 23:06 : feat(docs): soot terminal demos with hanging-indent rows, sand-ruled commands table, numbered eyebrow three-col grids — @fatih
+2026-04-19 23:06 : chore(docs): drop emoji from header/title; inline SVG stamp-E favicon — @fatih
