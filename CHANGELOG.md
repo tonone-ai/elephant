@@ -12,6 +12,12 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 - overhaul README to lead with changelog automation, team memory, and cross-repo memory — previously undersold the post-1.2 surface; new sections explain how `/elephant changelog` removes release-day archaeology and how committing `ELEPHANT.md` turns memory into a team artifact with `@author` attribution
 - revamp `elephant.tonone.ai` landing page — add changelog-flow walkthrough terminal, team-memory and cross-repo value props, and command cards for `/elephant changelog`, `/elephant readme`, and `/elephant update`
 
+## [1.7.2] - 2026-04-19
+
+### Fixed
+
+- SessionStart recall footer no longer shows `latest: ?` or a stale date — parser was including YAML-ish frontmatter lines (`---`, intro blockquote) in the entry list, inflating the total count and leaving `local[0]` without a timestamp. Now filters entries to those with a parsed timestamp and sorts newest-first, so the footer and body reflect the actual most recent entry regardless of whether `ELEPHANT.md` is appended oldest-to-newest or newest-to-oldest.
+
 ## [1.7.1] - 2026-04-17
 
 ### Fixed
