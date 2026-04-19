@@ -13,7 +13,7 @@ jobs:
     name: trunk check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - uses: trunk-io/trunk-action@v1
@@ -22,7 +22,7 @@ jobs:
     name: node + json syntax
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -41,7 +41,7 @@ jobs:
     name: smoke test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -51,7 +51,7 @@ jobs:
     name: version sync
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: README badge matches plugin.json
         run: |
           PLUGIN_VERSION=$(node -e "process.stdout.write(require('./.claude-plugin/plugin.json').version)")
