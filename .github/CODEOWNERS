@@ -1,0 +1,11 @@
+# Default reviewers for every change.
+# Update to a team handle (e.g. @tonone-ai/maintainers) once provisioned.
+*                                  @thisisfatih
+
+# Scoped ownership — make these tighter as the maintainer set grows.
+/skills/elephant/                  @thisisfatih
+/hooks/                            @thisisfatih
+/.claude-plugin/                   @thisisfatih
+/install.sh                        @thisisfatih
+/.github/                          @thisisfatih
+/SECURITY.md                       @thisisfatih
