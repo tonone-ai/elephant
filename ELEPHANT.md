@@ -88,3 +88,4 @@
 2026-04-18 19:04 : chore: add GitHub community health files — @fatih
 2026-04-19 20:22 : chore: harden repo for open-source scale — @fatih
 2026-04-19 20:37 : fix(recall): drop frontmatter lines and sort entries newest-first — @fatih
+2026-04-19 20:46 : chore: bump README version badge to 1.7.2 — @fatih
