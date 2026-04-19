@@ -8,7 +8,7 @@
 
 <p>Claude Code forgets everything between sessions. Elephant fixes that — and ships your release notes while it's at it.</p>
 
-<img src="https://img.shields.io/badge/version-1.7.1-green">
+<img src="https://img.shields.io/badge/version-1.7.2-green">
 <img src="https://img.shields.io/badge/license-MIT-green">
 <img src="https://img.shields.io/badge/platform-Claude%20Code-blue">
 
