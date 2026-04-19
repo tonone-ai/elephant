@@ -121,10 +121,14 @@ function main() {
   const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   const cutoff7 = new Date(now - 7 * 24 * 60 * 60 * 1000);
 
-  const local = parseFile(LOCAL_MEM, false);
-  const global = parseFile(GLOBAL_MEM, true).filter(
-    (e) => e.repo && e.repo !== REPO,
-  );
+  const byDateDesc = (a, b) =>
+    (b.date?.getTime() || 0) - (a.date?.getTime() || 0);
+  const local = parseFile(LOCAL_MEM, false)
+    .filter((e) => e.tsStr)
+    .sort(byDateDesc);
+  const global = parseFile(GLOBAL_MEM, true)
+    .filter((e) => e.tsStr && e.repo && e.repo !== REPO)
+    .sort(byDateDesc);
 
   if (local.length === 0 && global.length === 0) {
     const msg =

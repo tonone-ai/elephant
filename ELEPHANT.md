@@ -87,3 +87,4 @@
 2026-04-17 15:59 : docs: drop "No cloud, just a file." hedge from landing hero (PR #38) — @fatih
 2026-04-18 19:04 : chore: add GitHub community health files — @fatih
 2026-04-19 20:22 : chore: harden repo for open-source scale — @fatih
+2026-04-19 20:37 : fix(recall): drop frontmatter lines and sort entries newest-first — @fatih
