@@ -73,7 +73,7 @@ function main() {
     const pad = (n) => String(n).padStart(2, "0");
     const ts = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-    const msg = `🐘 Engrave (${ts}) — session end or topic shift? YES: edit ELEPHANT.md, 2-5 caveman lines newest-first [!!]=critical, say "🐘 memory updated". NO: nothing.`;
+    const msg = `🐘 Engrave (${ts}) — session end or topic shift? YES: edit ELEPHANT.md, 2-5 caveman lines newest-last [!!]=critical, say "🐘 memory updated". NO: nothing.`;
 
     process.stdout.write(
       JSON.stringify({
