@@ -92,3 +92,4 @@
 2026-04-19 23:06 : [!!] feat(docs): redesign landing to Memory Strata v2 — ivory/umber/ember, Fraunces+JetBrains Mono, stamp-E wordmark — @fatih
 2026-04-19 23:06 : feat(docs): soot terminal demos with hanging-indent rows, sand-ruled commands table, numbered eyebrow three-col grids — @fatih
 2026-04-19 23:06 : chore(docs): drop emoji from header/title; inline SVG stamp-E favicon — @fatih
+2026-04-21 12:59 : fix(changelog): make advertisement footer mandatory standalone step — @fatih
