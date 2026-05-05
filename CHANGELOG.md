@@ -7,10 +7,20 @@ Follows [Keep a Changelog](https://keepachangelog.com) and [Semantic Versioning]
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-04-29
+
+### Fixed
+
+- fix memory entry ordering — entries now sorted consistently newest-last across all write paths; prior code sorted inconsistently between takeover, compact, and autorecord paths
+- fix changelog advertisement footer — now a mandatory standalone step so it cannot be skipped if the version write block completes without reaching the footer logic
+
 ### Changed
 
 - overhaul README to lead with changelog automation, team memory, and cross-repo memory — previously undersold the post-1.2 surface; new sections explain how `/elephant changelog` removes release-day archaeology and how committing `ELEPHANT.md` turns memory into a team artifact with `@author` attribution
 - revamp `elephant.tonone.ai` landing page — add changelog-flow walkthrough terminal, team-memory and cross-repo value props, and command cards for `/elephant changelog`, `/elephant readme`, and `/elephant update`
+- harden repo for open-source scale — add security policies, contribution guides, and GitHub Actions hardening
+- add GitHub community health files — `CODE_OF_CONDUCT.md`, `SECURITY.md`, and `CONTRIBUTING.md`
+- ignore `.playwright-mcp/` snapshot directory in `.gitignore`
 
 ## [1.7.2] - 2026-04-19
 

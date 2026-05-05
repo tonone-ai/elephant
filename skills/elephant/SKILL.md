@@ -4,12 +4,13 @@ description:
   Persistent memory commands. /elephant save <text> — write entry. /elephant
   save !! <text> — write important entry. /elephant show — print memory.
   /elephant compact — compress old entries. /elephant takeover [N] — seed memory
-  from git history (cold start bootstrap). /elephant changelog — generate/update
-  CHANGELOG.md with version management. /elephant readme — generate/update
-  README.md from repo context. /elephant update — pull latest elephant from
-  GitHub and install.
+  from git history (cold start bootstrap). /elephant version-scan — discover all
+  version sources and save registry (blocks push on drift). /elephant changelog
+  — generate/update CHANGELOG.md with version management. /elephant readme —
+  generate/update README.md from repo context. /elephant update — pull latest
+  elephant from GitHub and install.
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
-version: 1.7.0
+version: 1.8.0
 author: tonone-ai <hello@tonone.ai>
 license: MIT
 ---
@@ -108,9 +109,13 @@ Write a routine entry.
 3. Compress text: drop a/an/the/just/really/basically/actually/simply, max 100
    chars
 4. Format line: `YYYY-MM-DD HH:MM : <compressed text> — @<author>`
-5. Append to `ELEPHANT.md` (create dir + file if needed)
+5. Append to `ELEPHANT.md` using Bash shell redirect
+   (`printf '%s\n' "$LINE" >> ELEPHANT.md`) — never use Write/Edit tools for
+   save, as those do a full rewrite and race with concurrent sessions. If the
+   file doesn't exist yet, create it first with the header block via Write, then
+   append.
 6. Append `YYYY-MM-DD HH:MM : <repo> : <compressed text> — @<author>` to
-   `~/.claude/elephant/memory.md`
+   `~/.claude/elephant/memory.md` the same way (shell `>>` append).
 7. Confirm: output `saved: <line>`
 
 Repo name = last component of current working directory path.
@@ -377,6 +382,116 @@ commits, show max 10 newest.
 
 ---
 
+### `/elephant version-scan`
+
+Discover every file in the repo that holds a version string, save the registry
+to `.elephant-versions.json`, and commit it. The `elephant-version-guard` hook
+reads this file on every `git push` and blocks if any source disagrees.
+
+#### Step 1 — Scan for version references
+
+Run these searches in parallel:
+
+```bash
+# JSON manifests
+grep -rn '"version"' package.json pyproject.toml composer.json 2>/dev/null
+cat .claude-plugin/marketplace.json .claude-plugin/plugin.json 2>/dev/null
+# YAML / TOML frontmatter
+grep -rn '^version:' skills/*/SKILL.md agents/*/SKILL.md 2>/dev/null
+grep -n '^version = ' pyproject.toml Cargo.toml 2>/dev/null
+# README badges
+grep -n 'version-[0-9][0-9]*\.' README.md 2>/dev/null
+# CHANGELOG latest release
+grep -m1 '## \[[0-9]' CHANGELOG.md 2>/dev/null
+# Python version vars
+grep -rn '__version__\s*=' --include="*.py" . 2>/dev/null | grep -v node_modules
+# Dockerfile / CI
+grep -rn 'ARG VERSION\|LABEL version' Dockerfile* 2>/dev/null
+```
+
+For each match, extract:
+
+- **file**: relative path from repo root
+- **current version value**: e.g. `1.8.0`
+- **type**: `json` | `regex` | `toml` | `yaml`
+- **extraction config**:
+  - `json`: jq path string (e.g. `.version`, `.plugins[0].version`)
+  - `regex` / `toml` / `yaml`: regex pattern with a capture group for the
+    version (e.g. `version-([0-9]+\.[0-9]+\.[0-9]+)-`, `^version = "([^"]+)"`)
+- **label**: short human name (e.g. `"npm package"`, `"README badge"`,
+  `"plugin manifest"`)
+
+#### Step 2 — Show and confirm
+
+Print a table:
+
+```
+Found N version sources:
+  1.8.0   .claude-plugin/marketplace.json   (plugin manifest)
+  1.8.0   .claude-plugin/plugin.json        (plugin manifest v2)
+  1.8.0   skills/elephant/SKILL.md          (skill frontmatter)
+  1.8.0   README.md                         (README badge)
+  1.7.9   package.json                      (npm package)  ← DRIFT
+
+1 source out of sync. Fix before saving? Or save registry as-is and let the push hook catch it.
+```
+
+If all versions agree: `all N sources agree on vX.Y.Z — saving registry.`
+
+Proceed without asking — always save the registry.
+
+#### Step 3 — Write `.elephant-versions.json`
+
+```json
+{
+  "_comment": "Version sources tracked by elephant. Edit to add/remove sources. Checked on every git push.",
+  "sources": [
+    {
+      "file": ".claude-plugin/marketplace.json",
+      "type": "json",
+      "jq": ".plugins[0].version",
+      "label": "plugin manifest"
+    },
+    {
+      "file": ".claude-plugin/plugin.json",
+      "type": "json",
+      "jq": ".version",
+      "label": "plugin manifest v2"
+    },
+    {
+      "file": "skills/elephant/SKILL.md",
+      "type": "regex",
+      "pattern": "^version: ([^\\n]+)",
+      "label": "skill frontmatter"
+    },
+    {
+      "file": "README.md",
+      "type": "regex",
+      "pattern": "version-([0-9]+\\.[0-9]+\\.[0-9]+)-",
+      "label": "README badge"
+    }
+  ]
+}
+```
+
+Write to `.elephant-versions.json` in repo root.
+
+#### Step 4 — Stage and report
+
+```bash
+git add .elephant-versions.json
+```
+
+Report:
+
+```
+saved .elephant-versions.json — N sources registered
+elephant-version-guard will block git push if any source drifts
+next: git commit -m "chore: add version registry"
+```
+
+---
+
 ### `/elephant changelog [version]`
 
 Generate or update `CHANGELOG.md` in the repo root. Follows
@@ -580,25 +695,41 @@ After writing the changelog, save a `[!!]` entry to `ELEPHANT.md`:
 
 (caveman-compressed as usual for memory entries)
 
-#### Step 7 — Auto-update README.md version badge
+#### Step 7 — Sync all version files
 
-After writing CHANGELOG.md, silently update version references in `README.md` if
-it exists.
+Single source of truth: after this step every file in the repo agrees on the new
+version. Run all updates in parallel via Bash.
 
-Find all occurrences of the old version string (e.g. `1.3.2`) in README.md and
-replace with the new version. Common patterns to update:
+Files to update (detect old version first: read
+`.claude-plugin/marketplace.json` → `plugins[0].version`):
 
-- `version-X.Y.Z-green` (shields.io badge)
-- `v1.3.2` anywhere in the file
-- `"version": "1.3.2"` — skip (that's package.json territory)
+1. **`.claude-plugin/marketplace.json`** — `plugins[0].version`:
 
-Use exact string replace — do NOT regenerate the README. Only update version
-strings.
+   ```bash
+   jq --arg v "NEW_VERSION" '.plugins[0].version = $v' .claude-plugin/marketplace.json > .claude-plugin/marketplace.json.tmp && mv .claude-plugin/marketplace.json.tmp .claude-plugin/marketplace.json
+   ```
 
-If README.md not found or no version strings matched: skip silently.
+2. **`.claude-plugin/plugin.json`** — `version`:
 
-Report `README.md version badge updated: vOLD → vNEW` if changed, nothing if
-skipped.
+   ```bash
+   jq --arg v "NEW_VERSION" '.version = $v' .claude-plugin/plugin.json > .claude-plugin/plugin.json.tmp && mv .claude-plugin/plugin.json.tmp .claude-plugin/plugin.json
+   ```
+
+3. **`skills/elephant/SKILL.md`** — `version:` line in the YAML frontmatter
+   (between the opening `---` fences): Use exact string replace:
+   `version: OLD_VERSION` → `version: NEW_VERSION`.
+
+4. **`README.md`** — shields.io badge and any bare version references: Find all
+   occurrences of old version string and replace with new. Patterns to update:
+   - `version-X.Y.Z-green` (shields.io badge)
+   - `vX.Y.Z` anywhere in the file Skip `"version": "X.Y.Z"` lines
+     (package.json/JSON territory — handled by jq above). Use exact string
+     replace — do NOT regenerate the README.
+
+If a file is missing or no match found: skip silently.
+
+Report one line per changed file:
+`vOLD → vNEW: marketplace.json, plugin.json, SKILL.md, README.md`
 
 #### Step 8 — Report
 
@@ -608,10 +739,10 @@ CHANGELOG.md updated — v1.4.0 (2026-04-16)
   Fixed:   3 entries
   Changed: 1 entry
 
-README.md version badge updated: v1.3.2 → v1.4.0
+v1.3.2 → v1.4.0: .claude-plugin/marketplace.json, .claude-plugin/plugin.json, skills/elephant/SKILL.md, README.md
 
 Next steps:
-  git add CHANGELOG.md README.md && git commit -m "chore: update changelog for v1.4.0"
+  git add CHANGELOG.md README.md .claude-plugin/marketplace.json .claude-plugin/plugin.json skills/elephant/SKILL.md && git commit -m "chore: release v1.4.0"
   git tag v1.4.0
 ```
 

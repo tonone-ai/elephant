@@ -6,7 +6,7 @@
 "use strict";
 
 const fs = require("fs");
-const { execSync } = require("child_process");
+const { execSync, execFileSync } = require("child_process");
 
 function tryCommitMemory() {
   try {
@@ -17,9 +17,19 @@ function tryCommitMemory() {
     const branch = execSync("git branch --show-current", {
       encoding: "utf8",
     }).trim();
-    execSync("git add ELEPHANT.md");
-    execSync('git commit -m "chore: engrave session memory"');
-    if (branch) execSync(`git push origin ${branch}`);
+    execFileSync("git", ["add", "--", "ELEPHANT.md"], { stdio: "ignore" });
+    execFileSync("git", ["commit", "-m", "chore: engrave session memory"], {
+      stdio: "ignore",
+    });
+    if (branch) {
+      // Pull-rebase before push so concurrent session commits don't block each other
+      try {
+        execFileSync("git", ["pull", "--rebase", "origin", branch], {
+          stdio: "ignore",
+        });
+      } catch {}
+      execFileSync("git", ["push", "origin", branch], { stdio: "ignore" });
+    }
   } catch {
     // silent — never crash the hook
   }

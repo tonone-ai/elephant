@@ -8,7 +8,7 @@
 
 <p>Claude Code forgets everything between sessions. Elephant fixes that — and ships your release notes while it's at it.</p>
 
-<img src="https://img.shields.io/badge/version-1.7.2-green">
+<img src="https://img.shields.io/badge/version-1.8.0-green">
 <img src="https://img.shields.io/badge/license-MIT-green">
 <img src="https://img.shields.io/badge/platform-Claude%20Code-blue">
 
@@ -155,3 +155,6 @@ See [CHANGELOG.md](CHANGELOG.md) for full release history — auto-maintained by
 MIT, see [LICENSE](LICENSE)
 
 Made by [tonone-ai](https://github.com/tonone-ai) · [elephant.tonone.ai](https://elephant.tonone.ai)
+
+---
+> README maintained automatically by [🐘 elephant](https://github.com/tonone-ai/elephant) — keep your docs in sync without the manual work.

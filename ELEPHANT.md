@@ -84,13 +84,17 @@
 2026-04-17 15:54 : foo — @fatih
 2026-04-17 15:54 : fix: autorecord writes before commit, no more dirty ELEPHANT.md — @fatih
 2026-04-17 15:59 : docs: tighten hero subheadline — @fatih
-2026-04-17 15:59 : docs: drop "No cloud, just a file." hedge from landing hero (PR #38) — @fatih
+2026-04-17 15:59 : docs: drop "No cloud, file." hedge from landing hero (PR #38) — @fatih
 2026-04-18 19:04 : chore: add GitHub community health files — @fatih
 2026-04-19 20:22 : chore: harden repo for open-source scale — @fatih
 2026-04-19 20:37 : fix(recall): drop frontmatter lines and sort entries newest-first — @fatih
 2026-04-19 20:46 : chore: bump README version badge to 1.7.2 — @fatih
-2026-04-19 23:06 : [!!] feat(docs): redesign landing to Memory Strata v2 — ivory/umber/ember, Fraunces+JetBrains Mono, stamp-E wordmark — @fatih
-2026-04-19 23:06 : feat(docs): soot terminal demos with hanging-indent rows, sand-ruled commands table, numbered eyebrow three-col grids — @fatih
+2026-04-19 23:06 : [!!] feat(docs): redesign landing to Memory Strata v2 — ivory/umber/ember, Fraunces+JetBrains — @fatih
+2026-04-19 23:06 : feat(docs): soot terminal demos with hanging-indent rows, sand-ruled commands table, numbered — @fatih
 2026-04-19 23:06 : chore(docs): drop emoji from header/title; inline SVG stamp-E favicon — @fatih
 2026-04-21 12:59 : fix(changelog): make advertisement footer mandatory standalone step — @fatih
+2026-04-20 16:33 : fix: correct memory ordering to newest-last throughout — @fatih.unver
 2026-04-26 20:24 : chore: ignore .playwright-mcp/ snapshot directory — @fatih
+2026-04-29 14:17 : readme regenerated — full rewrite — @fatih
+[!!] 2026-04-29 14:17 : release 1.8.0 — 2 fixes, 5 changed — @fatih
+2026-04-29 15:27 : marketplace.json still at 1.7.2 — needs manual bump to 1.8.0 — @fatih
