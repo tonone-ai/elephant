@@ -77,8 +77,8 @@ Write a routine entry.
 2. Get author: run `git config user.email` via Bash. Take the part before `@`. If that fails or is empty, run `git config user.name` and take the first word lowercased. If that also fails, use `$USER`.
 3. Compress text: drop a/an/the/just/really/basically/actually/simply, max 100 chars
 4. Format line: `YYYY-MM-DD HH:MM : <compressed text> — @<author>`
-5. Append to `ELEPHANT.md` (create dir + file if needed)
-6. Append `YYYY-MM-DD HH:MM : <repo> : <compressed text> — @<author>` to `~/.claude/elephant/memory.md`
+5. Append to `ELEPHANT.md` using Bash shell redirect (`printf '%s\n' "$LINE" >> ELEPHANT.md`) — never use Write/Edit tools for save, as those do a full rewrite and race with concurrent sessions. If the file doesn't exist yet, create it first with the header block via Write, then append.
+6. Append `YYYY-MM-DD HH:MM : <repo> : <compressed text> — @<author>` to `~/.claude/elephant/memory.md` the same way (shell `>>` append).
 7. Confirm: output `saved: <line>`
 
 Repo name = last component of current working directory path.
