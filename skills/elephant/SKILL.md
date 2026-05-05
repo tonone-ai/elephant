@@ -2,7 +2,7 @@
 name: elephant
 description: Persistent memory commands. /elephant save <text> — write entry. /elephant save !! <text> — write important entry. /elephant show — print memory. /elephant compact — compress old entries. /elephant takeover [N] — seed memory from git history (cold start bootstrap). /elephant changelog — generate/update CHANGELOG.md with version management. /elephant readme — generate/update README.md from repo context. /elephant update — pull latest elephant from GitHub and install.
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
-version: 1.7.0
+version: 1.8.0
 author: tonone-ai <hello@tonone.ai>
 license: MIT
 ---
@@ -488,21 +488,35 @@ After writing the changelog, save a `[!!]` entry to `ELEPHANT.md`:
 
 (caveman-compressed as usual for memory entries)
 
-#### Step 7 — Auto-update README.md version badge
+#### Step 7 — Sync all version files
 
-After writing CHANGELOG.md, silently update version references in `README.md` if it exists.
+Single source of truth: after this step every file in the repo agrees on the new version. Run all updates in parallel via Bash.
 
-Find all occurrences of the old version string (e.g. `1.3.2`) in README.md and replace with the new version. Common patterns to update:
+Files to update (detect old version first: read `.claude-plugin/marketplace.json` → `plugins[0].version`):
 
-- `version-X.Y.Z-green` (shields.io badge)
-- `v1.3.2` anywhere in the file
-- `"version": "1.3.2"` — skip (that's package.json territory)
+1. **`.claude-plugin/marketplace.json`** — `plugins[0].version`:
+   ```bash
+   jq --arg v "NEW_VERSION" '.plugins[0].version = $v' .claude-plugin/marketplace.json > .claude-plugin/marketplace.json.tmp && mv .claude-plugin/marketplace.json.tmp .claude-plugin/marketplace.json
+   ```
 
-Use exact string replace — do NOT regenerate the README. Only update version strings.
+2. **`.claude-plugin/plugin.json`** — `version`:
+   ```bash
+   jq --arg v "NEW_VERSION" '.version = $v' .claude-plugin/plugin.json > .claude-plugin/plugin.json.tmp && mv .claude-plugin/plugin.json.tmp .claude-plugin/plugin.json
+   ```
 
-If README.md not found or no version strings matched: skip silently.
+3. **`skills/elephant/SKILL.md`** — `version:` line in the YAML frontmatter (between the opening `---` fences):
+   Use exact string replace: `version: OLD_VERSION` → `version: NEW_VERSION`.
 
-Report `README.md version badge updated: vOLD → vNEW` if changed, nothing if skipped.
+4. **`README.md`** — shields.io badge and any bare version references:
+   Find all occurrences of old version string and replace with new. Patterns to update:
+   - `version-X.Y.Z-green` (shields.io badge)
+   - `vX.Y.Z` anywhere in the file
+   Skip `"version": "X.Y.Z"` lines (package.json/JSON territory — handled by jq above).
+   Use exact string replace — do NOT regenerate the README.
+
+If a file is missing or no match found: skip silently.
+
+Report one line per changed file: `vOLD → vNEW: marketplace.json, plugin.json, SKILL.md, README.md`
 
 #### Step 8 — Report
 
@@ -512,10 +526,10 @@ CHANGELOG.md updated — v1.4.0 (2026-04-16)
   Fixed:   3 entries
   Changed: 1 entry
 
-README.md version badge updated: v1.3.2 → v1.4.0
+v1.3.2 → v1.4.0: .claude-plugin/marketplace.json, .claude-plugin/plugin.json, skills/elephant/SKILL.md, README.md
 
 Next steps:
-  git add CHANGELOG.md README.md && git commit -m "chore: update changelog for v1.4.0"
+  git add CHANGELOG.md README.md .claude-plugin/marketplace.json .claude-plugin/plugin.json skills/elephant/SKILL.md && git commit -m "chore: release v1.4.0"
   git tag v1.4.0
 ```
 
