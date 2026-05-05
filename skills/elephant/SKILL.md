@@ -1,6 +1,6 @@
 ---
 name: elephant
-description: Persistent memory commands. /elephant save <text> — write entry. /elephant save !! <text> — write important entry. /elephant show — print memory. /elephant compact — compress old entries. /elephant takeover [N] — seed memory from git history (cold start bootstrap). /elephant changelog — generate/update CHANGELOG.md with version management. /elephant readme — generate/update README.md from repo context. /elephant update — pull latest elephant from GitHub and install.
+description: Persistent memory commands. /elephant save <text> — write entry. /elephant save !! <text> — write important entry. /elephant show — print memory. /elephant compact — compress old entries. /elephant takeover [N] — seed memory from git history (cold start bootstrap). /elephant version-scan — discover all version sources and save registry (blocks push on drift). /elephant changelog — generate/update CHANGELOG.md with version management. /elephant readme — generate/update README.md from repo context. /elephant update — pull latest elephant from GitHub and install.
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 version: 1.7.0
 author: tonone-ai <hello@tonone.ai>
@@ -306,6 +306,90 @@ reload claude code to pick up new version
 ```
 
 Show commits from step 2 git log — caveman-compress each subject line. If many commits, show max 10 newest.
+
+---
+
+### `/elephant version-scan`
+
+Discover every file in the repo that holds a version string, save the registry to `.elephant-versions.json`, and commit it. The `elephant-version-guard` hook reads this file on every `git push` and blocks if any source disagrees.
+
+#### Step 1 — Scan for version references
+
+Run these searches in parallel:
+
+```bash
+# JSON manifests
+grep -rn '"version"' package.json pyproject.toml composer.json 2>/dev/null
+cat .claude-plugin/marketplace.json .claude-plugin/plugin.json 2>/dev/null
+# YAML / TOML frontmatter
+grep -rn '^version:' skills/*/SKILL.md agents/*/SKILL.md 2>/dev/null
+grep -n '^version = ' pyproject.toml Cargo.toml 2>/dev/null
+# README badges
+grep -n 'version-[0-9][0-9]*\.' README.md 2>/dev/null
+# CHANGELOG latest release
+grep -m1 '## \[[0-9]' CHANGELOG.md 2>/dev/null
+# Python version vars
+grep -rn '__version__\s*=' --include="*.py" . 2>/dev/null | grep -v node_modules
+# Dockerfile / CI
+grep -rn 'ARG VERSION\|LABEL version' Dockerfile* 2>/dev/null
+```
+
+For each match, extract:
+- **file**: relative path from repo root
+- **current version value**: e.g. `1.8.0`
+- **type**: `json` | `regex` | `toml` | `yaml`
+- **extraction config**:
+  - `json`: jq path string (e.g. `.version`, `.plugins[0].version`)
+  - `regex` / `toml` / `yaml`: regex pattern with a capture group for the version (e.g. `version-([0-9]+\.[0-9]+\.[0-9]+)-`, `^version = "([^"]+)"`)
+- **label**: short human name (e.g. `"npm package"`, `"README badge"`, `"plugin manifest"`)
+
+#### Step 2 — Show and confirm
+
+Print a table:
+
+```
+Found N version sources:
+  1.8.0   .claude-plugin/marketplace.json   (plugin manifest)
+  1.8.0   .claude-plugin/plugin.json        (plugin manifest v2)
+  1.8.0   skills/elephant/SKILL.md          (skill frontmatter)
+  1.8.0   README.md                         (README badge)
+  1.7.9   package.json                      (npm package)  ← DRIFT
+
+1 source out of sync. Fix before saving? Or save registry as-is and let the push hook catch it.
+```
+
+If all versions agree: `all N sources agree on vX.Y.Z — saving registry.`
+
+Proceed without asking — always save the registry.
+
+#### Step 3 — Write `.elephant-versions.json`
+
+```json
+{
+  "_comment": "Version sources tracked by elephant. Edit to add/remove sources. Checked on every git push.",
+  "sources": [
+    { "file": ".claude-plugin/marketplace.json", "type": "json",  "jq": ".plugins[0].version", "label": "plugin manifest" },
+    { "file": ".claude-plugin/plugin.json",       "type": "json",  "jq": ".version",             "label": "plugin manifest v2" },
+    { "file": "skills/elephant/SKILL.md",         "type": "regex", "pattern": "^version: ([^\\n]+)", "label": "skill frontmatter" },
+    { "file": "README.md",                        "type": "regex", "pattern": "version-([0-9]+\\.[0-9]+\\.[0-9]+)-", "label": "README badge" }
+  ]
+}
+```
+
+Write to `.elephant-versions.json` in repo root.
+
+#### Step 4 — Stage and report
+
+```bash
+git add .elephant-versions.json
+```
+
+Report:
+```
+saved .elephant-versions.json — N sources registered
+elephant-version-guard will block git push if any source drifts
+next: git commit -m "chore: add version registry"
+```
 
 ---
 
