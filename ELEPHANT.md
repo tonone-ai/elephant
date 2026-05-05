@@ -98,3 +98,5 @@
 2026-04-29 14:17 : readme regenerated — full rewrite — @fatih
 [!!] 2026-04-29 14:17 : release 1.8.0 — 2 fixes, 5 changed — @fatih
 2026-04-29 15:27 : marketplace.json still at 1.7.2 — needs manual bump to 1.8.0 — @fatih
+2026-05-05 22:48 : branch audit — fix/concurrent-session-write-races, fix/recall-frontmatter-and-sort, chore/open-source-readiness all merged (PRs #49, #43, #40), just not deleted — @fatih
+2026-05-05 22:48 : chore/open-source-readiness has orphaned commit 55fd953 not in main — lint fixes only (dependabot quotes, smoke.sh [ ] → [[ ]]) — low priority — @fatih
