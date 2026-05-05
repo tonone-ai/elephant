@@ -101,22 +101,54 @@ function readExistingTexts(filePath) {
   }
 }
 
+// Acquire advisory lock via O_EXCL — serializes concurrent session writes.
+// Falls through after 20 retries (better to write unlocked than lose an entry).
+// Stale locks (>5s old) are removed automatically.
+function acquireLock(lockPath) {
+  for (let i = 0; i < 20; i++) {
+    try {
+      const fd = fs.openSync(
+        lockPath,
+        fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY,
+      );
+      fs.closeSync(fd);
+      return true;
+    } catch (e) {
+      if (e.code !== "EEXIST") return false;
+      try {
+        const stat = fs.statSync(lockPath);
+        if (Date.now() - stat.mtimeMs > 5000) {
+          fs.unlinkSync(lockPath);
+          continue;
+        }
+      } catch {}
+      // Busy-wait 50–150 ms before retry (acceptable in a 5s-timeout hook)
+      const end = Date.now() + 50 + Math.floor(Math.random() * 100);
+      while (Date.now() < end) {}
+    }
+  }
+  return false;
+}
+
 function appendLines(filePath, lines, header) {
   if (!lines.length) return;
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  let existing = fs.existsSync(filePath)
-    ? fs.readFileSync(filePath, "utf8")
-    : "";
 
-  // Strip any existing header blocks (one or more `>` lines between `---` fences)
-  // so the caller's header constant can be re-pinned fresh. Uses /g to sweep up
-  // duplicates left behind when an older hook version ran against a newer file.
-  const headerRe = /\n*---\n(?:>[^\n]*\n)+---\n*/g;
-  existing = existing.replace(headerRe, "\n").replace(/^\n+/, "");
+  const lockPath = filePath + ".lock";
+  const locked = acquireLock(lockPath);
 
-  const body = existing.trimEnd();
-  const newContent = (body ? body + "\n" : "") + lines.join("\n") + "\n";
-  fs.writeFileSync(filePath, header + "\n" + newContent);
+  try {
+    if (!fs.existsSync(filePath)) {
+      // New file — write header + first entries atomically
+      fs.writeFileSync(filePath, header + "\n" + lines.join("\n") + "\n");
+    } else {
+      // Existing file — true append (O_APPEND is POSIX-atomic for small writes,
+      // avoids the full-rewrite race that lets concurrent sessions overwrite each other)
+      fs.appendFileSync(filePath, lines.join("\n") + "\n");
+    }
+  } finally {
+    if (locked) try { fs.unlinkSync(lockPath); } catch {}
+  }
 }
 
 // Detect `git commit <pathspec>` forms. Returns true when the commit restricts
