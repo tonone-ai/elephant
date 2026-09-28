@@ -1,5 +1,6 @@
 {
   "name": "elephant",
+  "description": "Persistent per-repo memory for Claude Code: a committed ELEPHANT.md loaded every session, plus changelog and README generation from git history.",
   "owner": {
     "name": "tonone-ai",
     "email": "hello@tonone.ai"
