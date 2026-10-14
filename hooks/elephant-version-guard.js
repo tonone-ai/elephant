@@ -11,21 +11,52 @@ const { execFileSync } = require("child_process");
 
 const REGISTRY_FILE = path.join(process.cwd(), ".elephant-versions.json");
 
+// The registry is repo content, so treat it as untrusted input (a cloned repo can ship any registry).
+const VERSION_RE = /^[\w.+-]{1,64}$/;
+const MAX_PATTERN_LEN = 200;
+const MAX_FILE_BYTES = 1024 * 1024;
+
+// Resolve a registry file path, refusing anything that escapes the repo root.
+function safePath(file) {
+  if (typeof file !== "string" || !file || path.isAbsolute(file)) return null;
+  const root = process.cwd();
+  const resolved = path.resolve(root, file);
+  return resolved.startsWith(root + path.sep) ? resolved : null;
+}
+
+// Only version-shaped strings may leave this hook; never echo arbitrary file content.
+function sanitize(v) {
+  return typeof v === "string" && VERSION_RE.test(v) ? v : null;
+}
+
+function regexMatch(content, pattern) {
+  if (typeof pattern !== "string" || pattern.length > MAX_PATTERN_LEN)
+    return null;
+  try {
+    const m = content.match(new RegExp(pattern, "m"));
+    return m ? sanitize(m[1]) : null;
+  } catch {
+    return null;
+  }
+}
+
 // Extract version from a single source entry. Returns null if file missing or no match.
 function extractVersion(source) {
-  const filePath = path.join(process.cwd(), source.file);
-  if (!fs.existsSync(filePath)) return null;
+  const filePath = safePath(source.file);
+  if (!filePath || !fs.existsSync(filePath)) return null;
+  if (fs.statSync(filePath).size > MAX_FILE_BYTES) return null;
 
   const content = fs.readFileSync(filePath, "utf8");
 
   if (source.type === "json") {
+    if (typeof source.jq !== "string" || source.jq.startsWith("-")) return null;
     // Prefer jq if available; fall back to a simple dot-path walker.
     try {
       const out = execFileSync("jq", ["-r", source.jq, filePath], {
         encoding: "utf8",
         stdio: ["ignore", "pipe", "ignore"],
       }).trim();
-      return out === "null" || out === "" ? null : out;
+      return out === "null" || out === "" ? null : sanitize(out);
     } catch {
       try {
         const obj = JSON.parse(content);
@@ -37,25 +68,32 @@ function extractVersion(source) {
           else val = val[p];
           if (val == null) return null;
         }
-        return val != null ? String(val) : null;
+        return val != null ? sanitize(String(val)) : null;
       } catch {
         return null;
       }
     }
   }
 
-  if (source.type === "regex") {
-    const m = content.match(new RegExp(source.pattern, "m"));
-    return m ? m[1] : null;
-  }
-
-  // toml / yaml — caller supplies a regex pattern (same extraction path)
-  if (source.type === "toml" || source.type === "yaml") {
-    const m = content.match(new RegExp(source.pattern, "m"));
-    return m ? m[1] : null;
+  // regex / toml / yaml — caller supplies a regex pattern (same extraction path)
+  if (
+    source.type === "regex" ||
+    source.type === "toml" ||
+    source.type === "yaml"
+  ) {
+    return regexMatch(content, source.pattern);
   }
 
   return null;
+}
+
+// True only when `git push` is an actual command, not text inside a quoted
+// argument (e.g. a commit message). Deleting a remote ref can't ship a drifted version.
+function isGitPush(cmd) {
+  const bare = cmd.replace(/"[^"]*"|'[^']*'/g, '""');
+  if (!/(?:^|[;&|(]\s*)git(?:\s+-\S+(?:\s+[^-\s]\S*)?)*\s+push\b/.test(bare))
+    return false;
+  return !/\s(?:--delete|-d)\b/.test(bare);
 }
 
 function main() {
@@ -67,17 +105,19 @@ function main() {
   process.stdin.on("end", () => {
     clearTimeout(timer);
 
-    if (!raw.includes("git push")) {
+    if (!raw.includes("push")) {
       process.exit(0);
       return;
     }
 
     let data = {};
-    try { data = JSON.parse(raw); } catch {}
+    try {
+      data = JSON.parse(raw);
+    } catch {}
 
     const cmd =
       data.tool_input?.command || (data.input && data.input.command) || "";
-    if (!cmd.includes("git push")) {
+    if (!isGitPush(cmd)) {
       process.exit(0);
       return;
     }
@@ -135,8 +175,14 @@ function main() {
     ].join("\n");
 
     process.stdout.write(
-      JSON.stringify({ decision: "block", reason: msg, systemMessage: msg }) +
-        "\n",
+      JSON.stringify({
+        hookSpecificOutput: {
+          hookEventName: "PreToolUse",
+          permissionDecision: "deny",
+          permissionDecisionReason: msg,
+        },
+        systemMessage: msg,
+      }) + "\n",
     );
   });
 }

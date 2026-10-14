@@ -141,13 +141,45 @@ function appendLines(filePath, lines, header) {
     if (!fs.existsSync(filePath)) {
       // New file — write header + first entries atomically
       fs.writeFileSync(filePath, header + "\n" + lines.join("\n") + "\n");
+    } else if (!fs.readFileSync(filePath, "utf8").startsWith(header)) {
+      // Header is missing, stale, or duplicated (older hook version) — re-pin it.
+      // Rewrite happens under the lock so concurrent sessions can't interleave.
+      // Sweeps up one or more `>` blocks between `---` fences, then prepends fresh.
+      const headerRe = /\n*---\n(?:>[^\n]*\n)+---\n*/g;
+      const existing = fs
+        .readFileSync(filePath, "utf8")
+        .replace(headerRe, "\n")
+        .replace(/^\n+/, "");
+      const body = existing.trimEnd();
+      fs.writeFileSync(
+        filePath,
+        header + "\n" + (body ? body + "\n" : "") + lines.join("\n") + "\n",
+      );
     } else {
-      // Existing file — true append (O_APPEND is POSIX-atomic for small writes,
+      // Header current — true append (O_APPEND is POSIX-atomic for small writes,
       // avoids the full-rewrite race that lets concurrent sessions overwrite each other)
-      fs.appendFileSync(filePath, lines.join("\n") + "\n");
+      // Guard against a missing trailing newline gluing the entry onto the last line.
+      let prefix = "";
+      try {
+        const fd = fs.openSync(filePath, "r");
+        try {
+          const size = fs.fstatSync(fd).size;
+          if (size > 0) {
+            const last = Buffer.alloc(1);
+            fs.readSync(fd, last, 0, 1, size - 1);
+            if (last[0] !== 0x0a) prefix = "\n";
+          }
+        } finally {
+          fs.closeSync(fd);
+        }
+      } catch {}
+      fs.appendFileSync(filePath, prefix + lines.join("\n") + "\n");
     }
   } finally {
-    if (locked) try { fs.unlinkSync(lockPath); } catch {}
+    if (locked)
+      try {
+        fs.unlinkSync(lockPath);
+      } catch {}
   }
 }
 

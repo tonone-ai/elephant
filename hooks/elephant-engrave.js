@@ -22,12 +22,19 @@ function tryCommitMemory() {
       stdio: "ignore",
     });
     if (branch) {
-      // Pull-rebase before push so concurrent session commits don't block each other
+      // Pull-rebase before push so concurrent session commits don't block each other.
+      // If the rebase fails (e.g. both sessions edited ELEPHANT.md), abort it so the
+      // user's repo is never left mid-rebase with conflict markers, and skip the push.
       try {
         execFileSync("git", ["pull", "--rebase", "origin", branch], {
           stdio: "ignore",
         });
-      } catch {}
+      } catch {
+        try {
+          execFileSync("git", ["rebase", "--abort"], { stdio: "ignore" });
+        } catch {}
+        return;
+      }
       execFileSync("git", ["push", "origin", branch], { stdio: "ignore" });
     }
   } catch {
